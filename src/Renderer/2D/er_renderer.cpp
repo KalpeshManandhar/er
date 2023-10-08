@@ -92,7 +92,7 @@ int fillCircle(er_Renderer2D *r, Vec2f center, float radius, uint32_t color){
         for (int x= center.x - radius; x<=center.x + radius; x++){
             if (!BetweenInc(0,r->buffer.w - 1, x))
                 continue;
-            if (x*x + y*y <= radius * radius)
+            if ((x - center.x)*(x - center.x) + (y-center.y)*(y-center.y) <= radius * radius)
                 r->buffer.setPixel(x,y, color);
         }
     }

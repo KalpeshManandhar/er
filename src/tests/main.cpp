@@ -1,5 +1,6 @@
 #include <math/math_er.h>
 #include <Renderer/2D/renderer.h>
+
 #define BMP_USE_VALUES
 #include "bmp.h"
 #include "timeMeasure.h"
@@ -84,10 +85,13 @@ void rendererTest(){
     Vec3i color;
     int * pcolor = &color.x;
     uint32_t tics = 0;
-    float fps = 0;
     float framecounter = 0;
     float timecounter = 0;
     float angle = 0;
+
+    const float fpsCap = 60.0f;
+    const float frameLimit = 1.0f/fpsCap;
+    const float multiplier = 280/fpsCap;
 
     Vec3f triangle[3]={
         {400,400,1}, {450,400,1}, {400,450,1}
@@ -119,15 +123,22 @@ void rendererTest(){
 
 
 
+            fillCircle(&r, transformed[0].xy(), 0.5f*len(transformed[1].xy()), color.y);
             fillTriangle(&r, transformed[0].xy(), transformed[1].xy(), transformed[2].xy(), 0xffffff00);
+            // fillCircle(&r, transformed[0].xy(), 50, RGB_TO_BMPHEX(0,255,255));
+
             win32_display(windowHandle, &r, &bmpinfo);
             
             color.y = lerp(color.x, color.z, float(tics)/UINT32_MAX);
-            angle += 0.5; 
-            tics += 10;
+            angle += 0.5 * multiplier; 
+            tics += 1 * multiplier;
             framecounter++;
-            timecounter += t_diff(framestart, get_current_time());
-            // printf("FPS : %0.4f  ", framecounter/timecounter);
+            float frametime = t_diff(framestart, get_current_time());
+            timecounter += frameLimit;
+            printf("FPS : %0.4f  ", framecounter/timecounter);
+
+            if(frametime < frameLimit)
+                Sleep((frameLimit - frametime)*1000.0f);
         }
     }
     

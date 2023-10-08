@@ -4,8 +4,8 @@ workspace "Test"
     kind "ConsoleApp"   
     language "C++"   
     targetdir "bin/%{cfg.buildcfg}" 
-    files {"./**.cpp" } 
-    includedirs {"./"}
+    files {"./src/**.cpp" } 
+    includedirs {"./src/"}
     filter "configurations:Debug"
     defines { "DEBUG" }  
     symbols "On" 
