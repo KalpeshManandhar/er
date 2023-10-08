@@ -1,4 +1,4 @@
-.\src\Renderer\3D
+src/Renderer/3D
 
 # Prerequisites
 *.d
