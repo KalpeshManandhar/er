@@ -45,6 +45,10 @@ Vec4f computePixel(Point p){
     return(Vec4f(p.color,1.0f));
 }
 
+
+/* 
+referenced from https://fgiesen.wordpress.com/2013/02/10/optimizing-the-basic-rasterizer/
+*/
 int rasterizeEdgeCheck(er_Renderer3D *r, Point p1, Point p2, Point p3){
     Vec2f a = p1.p.xy();
     Vec2f b = p2.p.xy();
@@ -57,22 +61,43 @@ int rasterizeEdgeCheck(er_Renderer3D *r, Point p1, Point p2, Point p3){
 
     float invAreaABC = 1.0f/signedArea(a,b,c);
 
+    Vec2f startPixel = {xmin, ymin};
+
+    int w1_row = signedArea(b, c, startPixel);
+    int w2_row = signedArea(c, a, startPixel);
+    int w3_row = signedArea(a, b, startPixel);
+
+    int stepX1 = (b.y - c.y);
+    int stepX2 = (c.y - a.y);
+    int stepX3 = (a.y - b.y);
+    int stepY1 = (c.x - b.x);
+    int stepY2 = (a.x - c.x);
+    int stepY3 = (b.x - a.x);
+
     for (int y = ymin; y<ymax; y++){
+        int w1_pixel = w1_row;
+        int w2_pixel = w2_row;
+        int w3_pixel = w3_row;
         for (int x = xmin; x<xmax; x++){
             Vec2f p = {float(x),float(y)};
             // barycentric coordinates of P where w1 + w2 + w3 = signedArea of triangle ABC
-            int w1 = signedArea(b, c, p);
-            int w2 = signedArea(c, a, p);
-            int w3 = signedArea(a, b, p);
-            if ((w1 | w2 | w3) >= 0){
-                Vec3f tValues = invAreaABC * Vec3f{(float)w1,(float)w2,(float)w3};
+            
+            if ((w1_pixel | w2_pixel | w3_pixel) >= 0){
+                Vec3f tValues = invAreaABC * Vec3f{(float)w1_pixel,(float)w2_pixel,(float)w3_pixel};
                 Point interpolated = interpolateProperties(p1, p2, p3, tValues);
 
                 Vec4f pixelColor = computePixel(interpolated);
                 uint32_t color = nRGBA_TO_U32(pixelColor.x, pixelColor.y, pixelColor.z, pixelColor.w);
                 r->buffer.setPixel(x,y,color);
             }
+
+            w1_pixel += stepX1;
+            w2_pixel += stepX2;
+            w3_pixel += stepX3;
         }
+        w1_row += stepY1;
+        w2_row += stepY2;
+        w3_row += stepY3;
     }
     return 0;
 }
@@ -153,8 +178,8 @@ int computeTriangle(er_Renderer3D *r, Point a, Point b, Point c){
 
     TIME(rasterizeStart);
     // rasterize
-    // rasterizeEdgeCheck(r, a, b, c);
-    rasterizeScanline(r, a, b, c);
+    rasterizeEdgeCheck(r, a, b, c);
+    // rasterizeScanline(r, a, b, c);
     TIME(rasterizeEnd);
     printf("%f", TIME_DIFF(rasterizeStart, rasterizeEnd));
 
