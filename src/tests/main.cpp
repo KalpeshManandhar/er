@@ -10,10 +10,7 @@
 #include <stdio.h>
 #include <Windows.h>
 
-#ifdef FPS_CAP
-#define FPS 60.0f
-#define FRAME_LIMIT 1.0f/FPS
-#endif
+
 
 
 LRESULT CALLBACK win32_windowProc(HWND windowHandle, UINT message, WPARAM wparam, LPARAM lparam){

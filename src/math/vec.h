@@ -89,7 +89,9 @@ Vec3f crossProduct(Vec3f, Vec3f);
 Vec3f normalize(Vec3f);
 float projection(Vec3f of, Vec3f on);
 
+float signedArea(Vec2f p1, Vec2f p2, Vec2f p3);
 Vec3f Barycentric(Vec2f a, Vec2f b, Vec2f c, Vec2f p);
+
 
 
 uint32_t nRGBAToU32(Vec4f color);

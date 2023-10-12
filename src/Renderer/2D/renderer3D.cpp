@@ -46,17 +46,35 @@ Vec4f computePixel(Point p){
 }
 
 int rasterizeEdgeCheck(er_Renderer3D *r, Point p1, Point p2, Point p3){
-    float ymax = Max(p1.p.y, Max(p2.p.y, p3.p.y));
-    float ymin = Min(p1.p.y, Min(p2.p.y, p3.p.y));
-    float xmax = Max(p1.p.x, Max(p2.p.x, p3.p.x));
-    float xmin = Min(p1.p.x, Min(p2.p.x, p3.p.x));
+    Vec2f a = p1.p.xy();
+    Vec2f b = p2.p.xy();
+    Vec2f c = p3.p.xy();
+    
+    float ymax = Max(a.y, Max(b.y, c.y));
+    float ymin = Min(a.y, Min(b.y, c.y));
+    float xmax = Max(a.x, Max(b.x, c.x));
+    float xmin = Min(a.x, Min(b.x, c.x));
 
+    float invAreaABC = 1.0f/signedArea(a,b,c);
 
     for (int y = ymin; y<ymax; y++){
         for (int x = xmin; x<xmax; x++){
-            if ()
+            Vec2f p = {float(x),float(y)};
+            // barycentric coordinates of P where w1 + w2 + w3 = signedArea of triangle ABC
+            int w1 = signedArea(b, c, p);
+            int w2 = signedArea(c, a, p);
+            int w3 = signedArea(a, b, p);
+            if ((w1 | w2 | w3) >= 0){
+                Vec3f tValues = invAreaABC * Vec3f{(float)w1,(float)w2,(float)w3};
+                Point interpolated = interpolateProperties(p1, p2, p3, tValues);
+
+                Vec4f pixelColor = computePixel(interpolated);
+                uint32_t color = nRGBA_TO_U32(pixelColor.x, pixelColor.y, pixelColor.z, pixelColor.w);
+                r->buffer.setPixel(x,y,color);
+            }
         }
     }
+    return 0;
 }
 
 
@@ -135,7 +153,8 @@ int computeTriangle(er_Renderer3D *r, Point a, Point b, Point c){
 
     TIME(rasterizeStart);
     // rasterize
-    rasterize(r, a, b, c);
+    // rasterizeEdgeCheck(r, a, b, c);
+    rasterizeScanline(r, a, b, c);
     TIME(rasterizeEnd);
     printf("%f", TIME_DIFF(rasterizeStart, rasterizeEnd));
 
