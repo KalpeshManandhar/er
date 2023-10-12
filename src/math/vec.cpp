@@ -53,7 +53,6 @@ float dotProduct(Vec2f a, Vec2f b){
     return(a.x * b.x + a.y * b.y);
 }
 
-// clockwise = +ve; and anticlockwise = -ve
 float crossMag(Vec2f a, Vec2f b){
     return(a.x * b.y - b.x * a.y);
 }
@@ -117,7 +116,6 @@ float dotProduct(Vec3f a, Vec3f b){
     return(a.x * b.x + a.y * b.y + a.z *b.z);
 }
 
-// clockwise = +ve; and anticlockwise = -ve
 Vec3f crossProduct(Vec3f a, Vec3f b){
     return(Vec3f{a.y*b.z-a.z*b.y, a.z*b.x-b.z*a.x, a.x * b.y - b.x * a.y});
 }
@@ -130,10 +128,34 @@ float projection(Vec3f of, Vec3f on){
 }
 
 
+float signedArea(Vec2f p1, Vec2f p2, Vec2f p3){
+    return crossMag(p2-p1, p3-p1);
+}
 
 
-// quick inverse square root from quake III 
 
+// returns a vec3 with (u,v,w)
+Vec3f Barycentric(Vec2f a, Vec2f b, Vec2f c, Vec2f p){
+    // P = A + v(B-A) + w(C-A)
+    // P = uA + vB + wC
+    // a = (x1,y1)
+    // b = (x2,y2)
+    // c = (x3,y3)
+    // p = (xp,yp)
+
+    float x21 = b.x - a.x;
+    float x31 = c.x - a.x;
+    float y21 = b.y - a.y;
+    float y31 = c.y - a.y;
+    float xp1 = p.x - a.x;
+    float yp1 = p.y - a.y;
+
+    float denom = y31 * x21 - x31 * y21;
+    float v = -(yp1 * x31 - xp1 * y31)/denom;
+    float w = (yp1 * x21 - xp1 * y21)/denom;
+    float u = 1.0f - v - w;
+    return(Vec3f{u,v,w}); 
+}
 
 
 

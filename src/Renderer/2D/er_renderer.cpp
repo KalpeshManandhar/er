@@ -16,7 +16,6 @@ int drawLine(er_Renderer2D *r, Vec2f a, Vec2f b, uint32_t color){
 }
 
 
-
 int fillTriangle(er_Renderer2D *r, Vec2f a, Vec2f b, Vec2f c, uint32_t color){
     Vec2f *start = &a,*end = &b, *third = &c;
     // find points with largest y separation: start and end for sampling, third is remaining point
@@ -26,7 +25,7 @@ int fillTriangle(er_Renderer2D *r, Vec2f a, Vec2f b, Vec2f c, uint32_t color){
     if (fabsf(start->y - end->y) < fabsf(b.y - c.y)) { start = &b; end = &c; third = &a; }
     if (fabsf(start->y - end->y) < fabsf(a.y - c.y)) { start = &a; end = &c; third = &b; }
 
-    // deltaY and deltaX for sampling iterations
+    // deltaY and deltaX for sampling iterations along the line AB
     float deltaY = fabsf(end->y - start->y)/(end->y - start->y);
     float deltaX = (end->x - start->x)/fabsf(end->y - start->y);
 
@@ -98,3 +97,5 @@ int fillCircle(er_Renderer2D *r, Vec2f center, float radius, uint32_t color){
     }
     return 0;
 }
+
+

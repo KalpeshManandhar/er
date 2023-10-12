@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 
 template <typename T>
 struct Vec2{
@@ -28,6 +30,8 @@ template <typename T>
 struct Vec4{
     T x,y,z,w;
 
+    Vec4(){}
+    Vec4(Vec3<T> v3, T W){x = v3.x; y = v3.y; z = v3.z; w = W;} 
     Vec3<T> xyz(){
         return Vec3<T>{x,y,z};
     }
@@ -85,6 +89,11 @@ Vec3f crossProduct(Vec3f, Vec3f);
 Vec3f normalize(Vec3f);
 float projection(Vec3f of, Vec3f on);
 
+Vec3f Barycentric(Vec2f a, Vec2f b, Vec2f c, Vec2f p);
+
+
+uint32_t nRGBAToU32(Vec4f color);
+uint32_t nRGBToU32(Vec3f color);
 
 
 

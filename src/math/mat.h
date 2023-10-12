@@ -36,8 +36,18 @@ Mat<q,p> transpose(Mat<p,q> a){
     return(b);
 }
 
+template <int p>
+Mat<p,p> identity(){
+    Mat<p,p> m = {};
+    for(int i=0; i<p; i++){
+        m.arr[i][i] = 1;
+    }
+    return m;
+}
+
 Vec3f operator *(Mat3 m, Vec3f a);
 Vec4f operator *(Mat4 m, Vec4f a);
+
 
 Mat3 scaleAboutOrigin2D(float sx, float sy);
 Mat3 translate2D(float tx, float ty);
