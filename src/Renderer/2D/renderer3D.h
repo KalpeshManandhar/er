@@ -5,12 +5,12 @@
 #include "./defines.h"
 
 struct er_Renderer3D{
-    er_Buffer buffer;
-    er_Buffer depthBuffer;
+    er_Buffer framebuffer;
+    er_Buffer zBuffer;
 
     er_Renderer3D(size_t w, size_t h){
-        buffer = er_Buffer(w,h);
-        depthBuffer = er_Buffer(w,h);
+        framebuffer = er_Buffer(w,h);
+        zBuffer = er_Buffer(w,h);
     }
 
 };
@@ -21,6 +21,7 @@ struct Point{
 };
 
 int computeTriangle(er_Renderer3D *r, Point a, Point b, Point c);
+
 
 
 

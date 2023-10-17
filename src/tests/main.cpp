@@ -218,12 +218,13 @@ void rendererTest3DEx(){
                 TranslateMessage(&message);
                 DispatchMessageA(&message);
             }
-            r.buffer.clearAll(RGB_TO_U32(color.x, color.y, color.z));
+            r.framebuffer.clearAll(RGB_TO_U32(color.x, color.y, color.z));
+            r.zBuffer.clearAll_memset(0xff);
 
             interpolationTest(&r);
             // fillCircle(&r, transformed[0].xy(), 50, RGB_TO_BMP_U32(0,255,255));
 
-            win32_display(windowHandle, &r.buffer, &bmpinfo);
+            win32_display(windowHandle, &r.framebuffer, &bmpinfo);
             
             
             color.y = lerp(color.x, color.z, float(tics)/UINT32_MAX);

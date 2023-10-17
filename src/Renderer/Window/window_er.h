@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <assert.h>
+#include <string.h>
 
 #ifndef er_alloc
 #include <stdlib.h>
@@ -28,16 +29,28 @@ struct er_Buffer{
         return 0;
     }
 
-    void setPixel(int x, int y, uint32_t color){
+    void setPixel(int x, int y, uint32_t value){
         assert(0<=x && x<w);
         assert(0<=y && y<h);
 
-        buffer[y * w + x] = color;
+        buffer[y * w + x] = value;
     }
 
-    void clearAll(uint32_t color){
+    uint32_t getPixel(int x, int y){
+        assert(0<=x && x<w);
+        assert(0<=y && y<h);
+
+        return buffer[y * w + x];
+    }
+    
+
+    void clearAll(uint32_t value){
         for (int i=0; i<w*h; i++)
-            buffer[i] = color;
+            buffer[i] = value;
+    }
+
+    void clearAll_memset(uint8_t value){
+        memset(buffer,value, w * h * sizeof(*buffer));
     }
 };
 
