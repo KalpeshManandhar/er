@@ -5,12 +5,12 @@
 #include "./defines.h"
 
 struct er_Renderer3D{
-    er_Buffer framebuffer;
-    er_Buffer zBuffer;
+    er_Buffer2D framebuffer;
+    er_Buffer2Df zBuffer;
 
     er_Renderer3D(size_t w, size_t h){
-        framebuffer = er_Buffer(w,h);
-        zBuffer = er_Buffer(w,h);
+        framebuffer = er_Buffer2D(w,h);
+        zBuffer = er_Buffer2Df(w,h);
     }
 
 };
@@ -20,8 +20,20 @@ struct Point{
     Vec3f color;
 };
 
-int computeTriangle(er_Renderer3D *r, Point a, Point b, Point c);
 
+
+typedef Point (*VertexShader)(Point p);
+typedef Vec4f (*PixelShader)(Point p);
+
+struct Shader{
+    VertexShader vs;
+    PixelShader fs;
+};
+
+
+
+int computeTriangle(er_Renderer3D *r, Point a, Point b, Point c);
+int displayMesh(er_Renderer3D *r, Point *points, size_t nPoints, uint32_t *indices, size_t nIndices);
 
 
 

@@ -54,7 +54,7 @@ int fillTriangle(er_Renderer2D *r, Vec2f a, Vec2f b, Vec2f c, uint32_t color){
 
         // set pixels for scanline
         for (int xScan = scanlineStart.x; BetweenInc(scanlineStart.x, scanlineEnd.x,  xScan) || BetweenInc(scanlineEnd.x, scanlineStart.x,  xScan); xScan += scanlineDeltaX){
-            r->buffer.setPixel(xScan, yLine, color);            
+            r->buffer.setValue(xScan, yLine, color);            
         }
     }
 
@@ -67,7 +67,7 @@ int fillRectangle(er_Renderer2D*r, Vec2f min, Vec2f max, uint32_t color){
     assert((min.x <= max.x) && (min.y <= max.y));
     for (int y=min.y; y<=max.y; y++){
         for (int x = min.x; x <=max.x; x++){
-            r->buffer.setPixel(x,y, color);
+            r->buffer.setValue(x,y, color);
         }
     }
     return 0;
@@ -77,7 +77,7 @@ int fillRectangle(er_Renderer2D*r, Vec2f min, Vec2f max, uint32_t color){
 int fillRectangle(er_Renderer2D*r, Vec2f pos, float w, float h, uint32_t color){
     for (int y=pos.y; y<=pos.y + h; y++){
         for (int x = pos.x; x <=pos.x + w; x++){
-            r->buffer.setPixel(x,y, color);
+            r->buffer.setValue(x,y, color);
         }
     }
     return 0;
@@ -92,7 +92,7 @@ int fillCircle(er_Renderer2D *r, Vec2f center, float radius, uint32_t color){
             if (!BetweenInc(0,r->buffer.w - 1, x))
                 continue;
             if ((x - center.x)*(x - center.x) + (y-center.y)*(y-center.y) <= radius * radius)
-                r->buffer.setPixel(x,y, color);
+                r->buffer.setValue(x,y, color);
         }
     }
     return 0;

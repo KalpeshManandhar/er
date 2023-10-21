@@ -2,6 +2,7 @@
 
 #include "vec.h"
 
+// row major
 template <int m, int n>
 struct Mat{
     float arr[m][n];

@@ -9,12 +9,14 @@
 #define er_free free
 #endif //er_ALLOCATOR
 
-struct er_Buffer{
-    uint32_t *buffer;
+
+template <typename T>
+struct er_BufferT{
+    T *buffer;
     size_t w,h;
 
-    er_Buffer(){}
-    er_Buffer(size_t w, size_t h){
+    er_BufferT(){}
+    er_BufferT(size_t w, size_t h){
         buffer = NULL;
         resizeBuffer(w,h);
     }
@@ -22,21 +24,21 @@ struct er_Buffer{
     int resizeBuffer(size_t w, size_t h){
         if (buffer != NULL)
             er_free(buffer);
-        buffer = (uint32_t *)er_alloc(w * h * sizeof(*buffer));
+        buffer = (T *)er_alloc(w * h * sizeof(*buffer));
         if (buffer == NULL) return -1;
         this->w = w;
         this->h = h;
         return 0;
     }
 
-    void setPixel(int x, int y, uint32_t value){
+    void setValue(int x, int y, T value){
         assert(0<=x && x<w);
         assert(0<=y && y<h);
 
         buffer[y * w + x] = value;
     }
 
-    uint32_t getPixel(int x, int y){
+    T getValue(int x, int y){
         assert(0<=x && x<w);
         assert(0<=y && y<h);
 
@@ -44,7 +46,7 @@ struct er_Buffer{
     }
     
 
-    void clearAll(uint32_t value){
+    void clearAll(T value){
         for (int i=0; i<w*h; i++)
             buffer[i] = value;
     }
@@ -53,6 +55,10 @@ struct er_Buffer{
         memset(buffer,value, w * h * sizeof(*buffer));
     }
 };
+
+typedef er_BufferT<uint32_t>    er_Buffer2D;
+typedef er_BufferT<float>       er_Buffer2Df;
+typedef er_BufferT<int>         er_Buffer2D_i32;
 
 
 

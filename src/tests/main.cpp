@@ -6,6 +6,8 @@
 #define BMP_USE_VALUES
 #include "bmp.h"
 #include "debug.h"
+#include "vertices.h"
+
 
 #include <stdio.h>
 #include <Windows.h>
@@ -34,7 +36,7 @@ LRESULT CALLBACK win32_windowProc(HWND windowHandle, UINT message, WPARAM wparam
     return(DefWindowProc(windowHandle, message, wparam, lparam));
 }
 
-void win32_display(HWND windowHandle, er_Buffer *b, BITMAPINFO *bmpinfo){
+void win32_display(HWND windowHandle, er_Buffer2D *b, BITMAPINFO *bmpinfo){
     RECT windowRect = {};
     HDC deviceContext = GetWindowDC(windowHandle);
     GetWindowRect(windowHandle, &windowRect);
@@ -159,6 +161,24 @@ int interpolationTest(er_Renderer3D *r){
 
 
 
+
+
+void projectiontest(er_Renderer3D *r){
+    Triangle3DEx t;
+    t.a = {{100,100,200}, {1,0,0}};
+    t.b = {{40,50,400}, {1,0,0}};
+    t.c = {{220,40,200}, {1,0,0}};
+    computeTriangle(r,t.a,t.b,t.c);
+    
+    t.a = {{500,500,1000}, {0,1,0}};
+    t.b = {{400,500,1000}, {0,1,0}};
+    t.c = {{500,400,1000}, {0,1,0}};
+    computeTriangle(r,t.a,t.b,t.c);
+
+
+}
+
+
 void rendererTest3DEx(){
     WNDCLASSA windowClass = {};
     windowClass.lpszClassName = "windowclass";
@@ -255,10 +275,45 @@ void mathTest(){
     }
 }
 
+void newFrame(er_Renderer3D *r){
+    r->framebuffer.clearAll_memset(0x00);
+    r->zBuffer.clearAll_memset(0x00);
+}
+
+
+void cubeTest(er_Renderer3D *r){
+    Point points[ARRAY_COUNT(CubeMesh::vertices)];
+    for (int i =0; i<ARRAY_COUNT(CubeMesh::vertices); i++){
+        points[i].p = CubeMesh::vertices[i];
+        // points[i].color = colors[i%ARRAY_COUNT(colors)];
+        points[i].color = colors[0];
+    }
+
+    // displayMesh(r, points, ARRAY_COUNT(CubeMesh::vertices), CubeMesh::indices, ARRAY_COUNT(CubeMesh::indices));
+    displayMesh(r, points, ARRAY_COUNT(CubeMesh::vertices), CubeMesh::indices, 6);
+}
+
+
+void BMPTests(){
+    const int w = 1280, h = 720;
+    er_Renderer3D r(w,h);
+    BMP_File *f = newBMP(w,h,r.framebuffer.buffer,32);
+
+    newFrame(&r);
+    // interpolationTest(&r);
+    // projectiontest(&r);
+    cubeTest(&r);
+
+    writeBMP(f, "cubetest.bmp", BMP_WRITE_NONE);
+
+}
+
 
 int main(){
     // rendererTest2D();
-    rendererTest3DEx();
+    // rendererTest3DEx();
+    
+    BMPTests();
     return 0;
     
 }

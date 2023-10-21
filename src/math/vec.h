@@ -35,6 +35,10 @@ struct Vec4{
     Vec3<T> xyz(){
         return Vec3<T>{x,y,z};
     }
+
+    Vec3<T> xyz_h(){
+        return Vec3<T>{x/w,y/w,z/w};
+    }
 };
 
 using Vec4f = Vec4<float>;

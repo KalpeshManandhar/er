@@ -5,10 +5,10 @@
 
 
 struct er_Renderer2D{
-    er_Buffer buffer;
+    er_Buffer2D buffer;
 
     er_Renderer2D(size_t w, size_t h){
-        buffer = er_Buffer(w,h);
+        buffer = er_Buffer2D(w,h);
     }
 
 };
