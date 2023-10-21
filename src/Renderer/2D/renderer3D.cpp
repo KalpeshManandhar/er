@@ -40,7 +40,7 @@ static bool compareAndUpdateZ(er_Renderer3D *r, int x, int y, float z){
     bool withinRange = (BetweenInc(0.0f,1.0f, z));
     if (!withinRange) printf("Not in range 0-1: %f\n",z);
     bool infront =  ((1.0f - z) > r->zBuffer.getValue(x,y));
-    if (!infront) printf("Not in front 0-1: %f\n",z);
+    if (!infront) printf("Not in front z: %f prev: %f\n",z, 1- r->zBuffer.getValue(x,y));
     // bool visible = (BetweenInc(0.0f,1.0f, z)) && (1.0f - z > r->zBuffer.getValue(x,y));
     bool visible = withinRange && infront;
     if (visible)
@@ -114,7 +114,7 @@ int rasterizeEdgeCheck_mt(er_Renderer3D *r, Point p1, Point p2, Point p3){
 referenced from https://fgiesen.wordpress.com/2013/02/10/optimizing-the-basic-rasterizer/
 */
 int rasterizeEdgeCheck(er_Renderer3D *r, Point p1, Point p2, Point p3){
-    // convert to window coordinates from normalized
+    // convert to window coordinates from normalized coordinates
     p1.p.x *= r->framebuffer.w;
     p1.p.y *= r->framebuffer.h;
     p2.p.x *= r->framebuffer.w;
@@ -127,14 +127,14 @@ int rasterizeEdgeCheck(er_Renderer3D *r, Point p1, Point p2, Point p3){
     Vec2f c = p3.p.xy();
     
     // find bounding box and clip to window
-    float ymax = Min(Max(a.y, Max(b.y, c.y)), r->framebuffer.h-1);
-    float ymin = Max(Min(a.y, Min(b.y, c.y)), 0);
-    float xmax = Min(Max(a.x, Max(b.x, c.x)), r->framebuffer.w-1);
-    float xmin = Max(Min(a.x, Min(b.x, c.x)), 0);
+    int ymax = Min(Max(a.y, Max(b.y, c.y)), r->framebuffer.h-1);
+    int ymin = Max(Min(a.y, Min(b.y, c.y)), 0);
+    int xmax = Min(Max(a.x, Max(b.x, c.x)), r->framebuffer.w-1);
+    int xmin = Max(Min(a.x, Min(b.x, c.x)), 0);
 
     float invAreaABC = 1.0f/signedArea(a,b,c);
 
-    Vec2f startPixel = {xmin, ymin};
+    Vec2f startPixel = {float(xmin), float(ymin)};
 
     int w1_row = signedArea(b, c, startPixel);
     int w2_row = signedArea(c, a, startPixel);
