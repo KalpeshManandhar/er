@@ -128,8 +128,12 @@ float projection(Vec3f of, Vec3f on){
 }
 
 
-float signedArea(Vec2f p1, Vec2f p2, Vec2f p3){
+float signedAreaf(Vec2f p1, Vec2f p2, Vec2f p3){
     return crossMag(p2-p1, p3-p1);
+}
+
+int signedAreai(Vec2i p1, Vec2i p2, Vec2i p3){
+    return ((p2.x-p1.x) * (p3.y-p1.y) - (p3.x-p1.x) * (p2.y-p1.y));
 }
 
 

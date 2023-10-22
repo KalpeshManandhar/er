@@ -73,16 +73,16 @@ int rasterizeEdgeCheck_mt(er_Renderer3D *r, Point p1, Point p2, Point p3){
     h = (numThreads - (h-1)%numThreads) + h;    // round off to nearest multiple of numThreads
     ymax = ymin + h;
 
-    float invAreaABC = 1.0f/signedArea(a,b,c);
+    float invAreaABC = 1.0f/signedAreaf(a,b,c);
 
         auto fillSpan = [&](int yStart, int yEnd){
             for (int y = yStart; y<yEnd; y++){
                 for (int x = xmin; x<= xmax; x++){
                     Vec2f p = {float(x),float(y)};
                     // barycentric coordinates of P where w1 + w2 + w3 = signedArea of triangle ABC
-                    int w1_pixel = signedArea(b,c,p);
-                    int w2_pixel = signedArea(c,a,p);
-                    int w3_pixel = signedArea(a,b,p);
+                    int w1_pixel = signedAreaf(b,c,p);
+                    int w2_pixel = signedAreaf(c,a,p);
+                    int w3_pixel = signedAreaf(a,b,p);
                     
                     if ((w1_pixel | w2_pixel | w3_pixel) >= 0){
                         Vec3f tValues = invAreaABC * Vec3f{(float)w1_pixel,(float)w2_pixel,(float)w3_pixel};
@@ -122,9 +122,9 @@ int rasterizeEdgeCheck(er_Renderer3D *r, Point p1, Point p2, Point p3){
     p3.p.x *= r->framebuffer.w;
     p3.p.y *= r->framebuffer.h;
 
-    Vec2f a = p1.p.xy();
-    Vec2f b = p2.p.xy();
-    Vec2f c = p3.p.xy();
+    Vec2i a = {int(p1.p.x), int(p1.p.y)};
+    Vec2i b = {int(p2.p.x), int(p2.p.y)};
+    Vec2i c = {int(p3.p.x), int(p3.p.y)};
     
     // find bounding box and clip to window
     int ymax = Min(Max(a.y, Max(b.y, c.y)), r->framebuffer.h-1);
@@ -132,13 +132,13 @@ int rasterizeEdgeCheck(er_Renderer3D *r, Point p1, Point p2, Point p3){
     int xmax = Min(Max(a.x, Max(b.x, c.x)), r->framebuffer.w-1);
     int xmin = Max(Min(a.x, Min(b.x, c.x)), 0);
 
-    float invAreaABC = 1.0f/signedArea(a,b,c);
+    float invAreaABC = 1.0f/signedAreai(a,b,c);
 
-    Vec2f startPixel = {float(xmin), float(ymin)};
+    Vec2i startPixel = {xmin, ymin};
 
-    int w1_row = signedArea(b, c, startPixel);
-    int w2_row = signedArea(c, a, startPixel);
-    int w3_row = signedArea(a, b, startPixel);
+    int w1_row = signedAreai(b, c, startPixel);
+    int w2_row = signedAreai(c, a, startPixel);
+    int w3_row = signedAreai(a, b, startPixel);
 
     int stepX_w1 = (int(b.y) - int(c.y));
     int stepX_w2 = (int(c.y) - int(a.y));
@@ -153,16 +153,12 @@ int rasterizeEdgeCheck(er_Renderer3D *r, Point p1, Point p2, Point p3){
         int w2_pixel = w2_row;
         int w3_pixel = w3_row;
 
-        int span = 0;
-        int fillspan = 0;
-
         for (int x = xmin; x<=xmax; x++){
 
             // if w1,w2,w3 are all positive, pixel lies inside triangle
             if ((w1_pixel | w2_pixel | w3_pixel) >= 0){
                 Vec3f tValues = invAreaABC * Vec3f{(float)w1_pixel,(float)w2_pixel,(float)w3_pixel};
 
-                span++;    
                 float z = tValues.x * p1.p.z + tValues.y * p2.p.z + tValues.z * p3.p.z;
                 // check with depth buffer
                 if (compareAndUpdateZ(r,x,y,z)){
@@ -171,11 +167,6 @@ int rasterizeEdgeCheck(er_Renderer3D *r, Point p1, Point p2, Point p3){
                     Vec4f pixelColor = shadePixel(interpolated);
                     uint32_t color = nRGBA_TO_U32(pixelColor.x, pixelColor.y, pixelColor.z, pixelColor.w);
                     r->framebuffer.setValue(x,y,color);
-                    fillspan++;
-                }
-                else {
-                    float sum = tValues.x+tValues.y+ tValues.z;
-                    printf("z: %f, t1: %f, t2: %f, t3: %f SUM: %f\n ",z,tValues.x, tValues.y, tValues.z, sum);
                 }
             }
 
@@ -184,7 +175,6 @@ int rasterizeEdgeCheck(er_Renderer3D *r, Point p1, Point p2, Point p3){
             w3_pixel += stepX_w3;
         }
 
-        printf("y: %d Span: %d Fillspan: %d\n",y, span, fillspan);
         w1_row += stepY_w1;
         w2_row += stepY_w2;
         w3_row += stepY_w3;
@@ -258,8 +248,8 @@ Point computeVertex(Point p){
 
     //apply transformations
     Mat4 m = identity<4>(); 
-    m = scaleAboutOrigin(100,100,100);
-    m = translate(100,100,200) * m;
+    m = scaleAboutOrigin(100,100,600);
+    m = translate(100,100,-200) * m;
     m = perspectiveProjection(fovx, fovy, znear, zfar) * m;
 
     p.p = (m * p4).xyz_h();

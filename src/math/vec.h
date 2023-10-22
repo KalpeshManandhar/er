@@ -93,7 +93,8 @@ Vec3f crossProduct(Vec3f, Vec3f);
 Vec3f normalize(Vec3f);
 float projection(Vec3f of, Vec3f on);
 
-float signedArea(Vec2f p1, Vec2f p2, Vec2f p3);
+float signedAreaf(Vec2f p1, Vec2f p2, Vec2f p3);
+int signedAreai(Vec2i p1, Vec2i p2, Vec2i p3);
 Vec3f Barycentric(Vec2f a, Vec2f b, Vec2f c, Vec2f p);
 
 

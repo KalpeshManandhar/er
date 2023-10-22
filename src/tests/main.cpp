@@ -285,8 +285,8 @@ void cubeTest(er_Renderer3D *r){
     Point points[ARRAY_COUNT(CubeMesh::vertices)];
     for (int i =0; i<ARRAY_COUNT(CubeMesh::vertices); i++){
         points[i].p = CubeMesh::vertices[i];
-        // points[i].color = colors[i%ARRAY_COUNT(colors)];
-        points[i].color = colors[0];
+        points[i].color = colors[i%ARRAY_COUNT(colors)];
+        // points[i].color = colors[0];
     }
 
     displayMesh(r, points, ARRAY_COUNT(CubeMesh::vertices), CubeMesh::indices, ARRAY_COUNT(CubeMesh::indices));
