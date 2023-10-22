@@ -272,12 +272,12 @@ int computeTriangle(er_Renderer3D *r, Point a, Point b, Point c){
         return -1;
     
 
-    TIME(rasterizeStart);
+    // TIME(rasterizeStart);
     // rasterize
     rasterizeEdgeCheck(r, a, b, c);
     // rasterizeScanline(r, a, b, c);
-    TIME(rasterizeEnd);
-    printf("%f", TIME_DIFF(rasterizeStart, rasterizeEnd));
+    // TIME(rasterizeEnd);
+    // printf("%f", TIME_DIFF(rasterizeStart, rasterizeEnd));
 
     return 0;
 

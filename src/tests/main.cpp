@@ -181,89 +181,6 @@ void projectiontest(er_Renderer3D *r){
 }
 
 
-void rendererTest3DEx(){
-    WNDCLASSA windowClass = {};
-    windowClass.lpszClassName = "windowclass";
-    windowClass.lpfnWndProc = win32_windowProc;
-    windowClass.hInstance = 0;
-
-
-    RegisterClassA(&windowClass);
-
-    const int w = 1280, h = 720;
-    er_Renderer3D r(w,h);
-
-    HWND windowHandle = CreateWindowExA(
-        0, windowClass.lpszClassName, 
-                "Window-er",
-                WS_OVERLAPPEDWINDOW|WS_VISIBLE,
-                CW_USEDEFAULT,CW_USEDEFAULT,
-                CW_USEDEFAULT,CW_USEDEFAULT,
-                0,0,
-                windowClass.hInstance,
-                0);
-
-    BITMAPINFO bmpinfo = {};
-    bmpinfo.bmiHeader.biCompression = BI_RGB;
-    bmpinfo.bmiHeader.biHeight = h;
-    bmpinfo.bmiHeader.biWidth = w;
-    bmpinfo.bmiHeader.biSize = sizeof(bmpinfo.bmiHeader);
-    bmpinfo.bmiHeader.biBitCount = 32;
-    bmpinfo.bmiHeader.biPlanes = 1;
-
-    Vec3i color;
-    int * pcolor = &color.x;
-    uint32_t tics = 0;
-    float framecounter = 0;
-    float timecounter = 0;
-    float angle = 0;
-
-    const float fpsCap = 60.0f;
-    const float frameLimit = 1.0f/fpsCap;
-    const float multiplier = 280/fpsCap;
-
-    Vec3f triangle[3]={
-        {400,400,1}, {450,400,1}, {400,450,1}
-    };
-    
-
-    if (windowHandle){
-        bool isRunning = true;
-        MSG message;
-        while (isRunning){
-            n_time framestart = get_current_time();
-
-            while (PeekMessageA(&message, 0, 0,0,PM_REMOVE)){
-                if (message.message == WM_QUIT){
-                    isRunning = false;
-                }
-                TranslateMessage(&message);
-                DispatchMessageA(&message);
-            }
-            r.framebuffer.clearAll(RGB_TO_U32(color.x, color.y, color.z));
-            r.zBuffer.clearAll_memset(0xff);
-
-            interpolationTest(&r);
-            // fillCircle(&r, transformed[0].xy(), 50, RGB_TO_BMP_U32(0,255,255));
-
-            win32_display(windowHandle, &r.framebuffer, &bmpinfo);
-            
-            
-            color.y = lerp(color.x, color.z, float(tics)/UINT32_MAX);
-            angle += 0.5 * multiplier; 
-            tics += 1 * multiplier;
-            framecounter++;
-            float frametime = t_diff(framestart, get_current_time());
-            timecounter += frametime;
-            printf("FPS : %0.4f  ", framecounter/timecounter);
-
-            // if(frametime < frameLimit)
-                // Sleep((frameLimit - frametime)*1000.0f);
-        }
-    }
-}
-
-
 
 void mathTest(){
     float start = 0.01;
@@ -345,16 +262,106 @@ void BMPTests(){
     // projectiontest(&r);
     cubeTest(&r);
 
-    writeBMP(f, "cubetest.bmp", BMP_WRITE_NONE);
+    writeBMP(f, "cubetestsss.bmp", BMP_WRITE_NONE);
 
 }
 
 
+
+void rendererTest3DEx(){
+    WNDCLASSA windowClass = {};
+    windowClass.lpszClassName = "windowclass";
+    windowClass.lpfnWndProc = win32_windowProc;
+    windowClass.hInstance = 0;
+
+
+    RegisterClassA(&windowClass);
+
+    const int w = 1280, h = 720;
+    er_Renderer3D r(w,h);
+
+    HWND windowHandle = CreateWindowExA(
+        0, windowClass.lpszClassName, 
+                "Window-er",
+                WS_OVERLAPPEDWINDOW|WS_VISIBLE,
+                CW_USEDEFAULT,CW_USEDEFAULT,
+                CW_USEDEFAULT,CW_USEDEFAULT,
+                0,0,
+                windowClass.hInstance,
+                0);
+
+    BITMAPINFO bmpinfo = {};
+    bmpinfo.bmiHeader.biCompression = BI_RGB;
+    bmpinfo.bmiHeader.biHeight = h;
+    bmpinfo.bmiHeader.biWidth = w;
+    bmpinfo.bmiHeader.biSize = sizeof(bmpinfo.bmiHeader);
+    bmpinfo.bmiHeader.biBitCount = 32;
+    bmpinfo.bmiHeader.biPlanes = 1;
+
+    Vec3i color;
+    int * pcolor = &color.x;
+    uint32_t tics = 0;
+    float framecounter = 0;
+    float timecounter = 0;
+    float angle = 0;
+
+    const float fpsCap = 60.0f;
+    const float frameLimit = 1.0f/fpsCap;
+    const float multiplier = 280/fpsCap;
+
+    Vec3f triangle[3]={
+        {400,400,1}, {450,400,1}, {400,450,1}
+    };
+    
+
+    if (windowHandle){
+        bool isRunning = true;
+        MSG message;
+        while (isRunning){
+            n_time framestart = get_current_time();
+
+            while (PeekMessageA(&message, 0, 0,0,PM_REMOVE)){
+                if (message.message == WM_QUIT){
+                    isRunning = false;
+                }
+                TranslateMessage(&message);
+                DispatchMessageA(&message);
+            }
+            // r.framebuffer.clearAll(RGB_TO_U32(color.x, color.y, color.z));
+            // r.zBuffer.clearAll_memset(0xff);
+
+            newFrame(&r);
+
+            Shader def = {computeVertex, shadePixel};
+            r.shader = &def;
+
+            cubeTest(&r);
+            // fillCircle(&r, transformed[0].xy(), 50, RGB_TO_BMP_U32(0,255,255));
+
+            win32_display(windowHandle, &r.framebuffer, &bmpinfo);
+            
+            
+            color.y = lerp(color.x, color.z, float(tics)/UINT32_MAX);
+            angle += 0.5 * multiplier; 
+            tics += 1 * multiplier;
+            framecounter++;
+            float frametime = t_diff(framestart, get_current_time());
+            timecounter += frametime;
+            printf("FPS : %0.4f  ", framecounter/timecounter);
+
+            // if(frametime < frameLimit)
+                // Sleep((frameLimit - frametime)*1000.0f);
+        }
+    }
+}
+
+
+
 int main(){
     // rendererTest2D();
-    // rendererTest3DEx();
+    rendererTest3DEx();
     
-    BMPTests();
+    // BMPTests();
     return 0;
     
 }
