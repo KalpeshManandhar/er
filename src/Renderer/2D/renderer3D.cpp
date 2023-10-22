@@ -1,13 +1,11 @@
-#include "./renderer3D.h"
 #include <math/math_er.h>
 #include <thread>
 
+#include "./renderer3D.h"
 #include "./projection.h"
 
 #include <tests/debug.h>
 
-
-// #include <>
 
 
 #ifndef RGBA_TO_U32
@@ -38,9 +36,9 @@ static Point interpolateProperties(Point p1, Point p2, Point p3, Vec3f t){
 
 static bool compareAndUpdateZ(er_Renderer3D *r, int x, int y, float z){
     bool withinRange = (BetweenInc(0.0f,1.0f, z));
-    if (!withinRange) printf("Not in range 0-1: %f\n",z);
+    // if (!withinRange) printf("Not in range 0-1: %f\n",z);
     bool infront =  ((1.0f - z) > r->zBuffer.getValue(x,y));
-    if (!infront) printf("Not in front z: %f prev: %f\n",z, 1- r->zBuffer.getValue(x,y));
+    // if (!infront) printf("Not in front z: %f prev: %f\n",z, 1- r->zBuffer.getValue(x,y));
     // bool visible = (BetweenInc(0.0f,1.0f, z)) && (1.0f - z > r->zBuffer.getValue(x,y));
     bool visible = withinRange && infront;
     if (visible)
@@ -50,7 +48,7 @@ static bool compareAndUpdateZ(er_Renderer3D *r, int x, int y, float z){
 }
 
 
-Vec4f shadePixel(Point p){
+static Vec4f defShadePixel(Point p){
     return(Vec4f(p.color,1.0f));
 }
 
@@ -88,7 +86,7 @@ int rasterizeEdgeCheck_mt(er_Renderer3D *r, Point p1, Point p2, Point p3){
                         Vec3f tValues = invAreaABC * Vec3f{(float)w1_pixel,(float)w2_pixel,(float)w3_pixel};
                         Point interpolated = interpolateProperties(p1, p2, p3, tValues);
 
-                        Vec4f pixelColor = shadePixel(interpolated);
+                        Vec4f pixelColor = defShadePixel(interpolated);
                         uint32_t color = nRGBA_TO_U32(pixelColor.x, pixelColor.y, pixelColor.z, pixelColor.w);
                         r->framebuffer.setValue(x,y,color);
                     }
@@ -164,7 +162,9 @@ int rasterizeEdgeCheck(er_Renderer3D *r, Point p1, Point p2, Point p3){
                 if (compareAndUpdateZ(r,x,y,z)){
                     Point interpolated = interpolateProperties(p1, p2, p3, tValues);
 
-                    Vec4f pixelColor = shadePixel(interpolated);
+                    // Vec4f pixelColor = shadePixel(interpolated);
+                    Vec4f pixelColor = r->shader->ps(interpolated);
+
                     uint32_t color = nRGBA_TO_U32(pixelColor.x, pixelColor.y, pixelColor.z, pixelColor.w);
                     r->framebuffer.setValue(x,y,color);
                 }
@@ -231,7 +231,7 @@ int rasterizeScanline(er_Renderer3D *r, Point p1, Point p2, Point p3){
             Vec3f tvalues = Barycentric(a,b,c, Vec2f{(float)xScan, yLine});
             Point interpolated = interpolateProperties(p1, p2, p3, tvalues);
 
-            Vec4f pixelColor = shadePixel(interpolated);
+            Vec4f pixelColor = defShadePixel(interpolated);
             uint32_t color = nRGBA_TO_U32(pixelColor.x, pixelColor.y, pixelColor.z, pixelColor.w);
             r->framebuffer.setValue(xScan, yLine, color);  
         }
@@ -241,7 +241,7 @@ int rasterizeScanline(er_Renderer3D *r, Point p1, Point p2, Point p3){
 }
 
 
-Point computeVertex(Point p){
+static Point defComputeVertex(Point p){
     Vec4f p4(p.p, 1.0f);
     const float znear = 2.0f, zfar = 1000.0f;
     const float fovx = 90, fovy = 90;
@@ -261,15 +261,15 @@ Point computeVertex(Point p){
 
 // a,b,c in anticlockwise order
 int computeTriangle(er_Renderer3D *r, Point a, Point b, Point c){
-    // if (!visibleSurfaceDetection(a.p,b.p,c.p, {0,0,1})) 
-        // return -1;
 
 
     // compute vertex     
-    a = computeVertex(a);
-    b = computeVertex(b);
-    c = computeVertex(c);
+    a = r->shader->vs(a);
+    b = r->shader->vs(b);
+    c = r->shader->vs(c);
 
+    if (!visibleSurfaceDetection(a.p,b.p,c.p, {0,0,1})) 
+        return -1;
     
 
     TIME(rasterizeStart);

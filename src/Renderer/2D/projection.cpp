@@ -16,9 +16,21 @@ Mat4 perspectiveProjection(float fovXDegree, float fovYDegree, float zNear, floa
     y' = 0 to 1 at frustum borders
     z' = 0 at -znear to 1 at -zfar
     w' = z
-
+    
+                Y
+                ^
+                |
+                |
+                | 
+            ref o----------> X  
+               /
+              /
+             /
+            Z
 
     z = 0 is reference point
+    near plane: z=-znear
+    far plane: z=-zfar
     */
 
 
@@ -28,8 +40,8 @@ Mat4 perspectiveProjection(float fovXDegree, float fovYDegree, float zNear, floa
     float A = zFar/(zFar - zNear);
     float B = zNear * A;
     return Mat4{
-        -0.5f*invtanX,   0,              0.5,    0,
-        0,              -0.5f*invtanY,   0.5,    0,
+        -0.5f*invtanX,   0,             0.5,    0,
+        0,              -0.5f*invtanY,  0.5,    0,
         0,              0,              A,      B,
         0,              0,              1,      0
 

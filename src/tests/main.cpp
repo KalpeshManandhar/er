@@ -2,6 +2,8 @@
 #include <Renderer/2D/renderer.h>
 #include <Renderer/2D/renderer3D.h>
 
+#include <Renderer/2D/projection.h>
+
 
 #define BMP_USE_VALUES
 #include "bmp.h"
@@ -281,6 +283,30 @@ void newFrame(er_Renderer3D *r){
 }
 
 
+
+
+
+
+Mat4 model;
+static Point computeVertex(Point p){
+    Vec4f p4(p.p, 1.0f);
+    const float znear = 2.0f, zfar = 1000.0f;
+    const float fovx = 90, fovy = 90;
+
+    //apply transformations
+    Mat4 m = identity<4>(); 
+    m = model;
+    m = perspectiveProjection(fovx, fovy, znear, zfar) * m;
+
+    p.p = (m * p4).xyz_h();
+    return p;
+}
+
+static Vec4f shadePixel(Point p){
+    return(Vec4f(p.color,1.0f));
+}
+
+
 void cubeTest(er_Renderer3D *r){
     Point points[ARRAY_COUNT(CubeMesh::vertices)];
     for (int i =0; i<ARRAY_COUNT(CubeMesh::vertices); i++){
@@ -288,10 +314,23 @@ void cubeTest(er_Renderer3D *r){
         points[i].color = colors[i%ARRAY_COUNT(colors)];
         // points[i].color = colors[0];
     }
+    
+    const int rows = 5;
+    const int columns = 5;
 
-    displayMesh(r, points, ARRAY_COUNT(CubeMesh::vertices), CubeMesh::indices, ARRAY_COUNT(CubeMesh::indices));
+    int deltaY = r->framebuffer.h/(rows+1);
+    int deltaX = r->framebuffer.w/(columns+1);
+
+    Mat4 s = scaleAboutOrigin(200,200,200);
+    for (int y=0; y<rows; y++){
+        for (int x=0; x<columns; x++){
+            model = translate((x-columns/2)*deltaX/2, (y-rows/2)*deltaY/2,-200) * s;
+            displayMesh(r, points, ARRAY_COUNT(CubeMesh::vertices), CubeMesh::indices, ARRAY_COUNT(CubeMesh::indices));
+        }
+    }
     // displayMesh(r, points, ARRAY_COUNT(CubeMesh::vertices), CubeMesh::indices, 6);
 }
+
 
 
 void BMPTests(){
@@ -300,6 +339,8 @@ void BMPTests(){
     BMP_File *f = newBMP(w,h,r.framebuffer.buffer,32);
 
     newFrame(&r);
+    Shader def = {computeVertex, shadePixel};
+    r.shader = &def;
     // interpolationTest(&r);
     // projectiontest(&r);
     cubeTest(&r);

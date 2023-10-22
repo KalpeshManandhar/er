@@ -4,9 +4,14 @@
 #include <math/vec.h>
 #include "./defines.h"
 
+struct er_Renderer3D;
+struct Shader;
+
 struct er_Renderer3D{
     er_Buffer2D framebuffer;
     er_Buffer2Df zBuffer;
+
+    Shader *shader;
 
     er_Renderer3D(size_t w, size_t h){
         framebuffer = er_Buffer2D(w,h);
@@ -27,7 +32,7 @@ typedef Vec4f (*PixelShader)(Point p);
 
 struct Shader{
     VertexShader vs;
-    PixelShader fs;
+    PixelShader ps;    
 };
 
 
