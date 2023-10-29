@@ -187,7 +187,7 @@ int rasterizeEdgeCheck(er_Renderer3D *r, Point p1, Point p2, Point p3){
                     Point interpolated = interpolateProperties(p1, p2, p3, tValues);
 
                     // Vec4f pixelColor = shadePixel(interpolated);
-                    Vec4f pixelColor = r->shader->ps(interpolated);
+                    Vec4f pixelColor = r->shader.ps(interpolated);
 
                     uint32_t color = nRGBA_TO_U32(pixelColor.x, pixelColor.y, pixelColor.z, pixelColor.w);
                     r->framebuffer.setValue(x,y,color);
@@ -270,9 +270,9 @@ int rasterizeScanline(er_Renderer3D *r, Point p1, Point p2, Point p3){
 // a,b,c in anticlockwise order
 int computeTriangle(er_Renderer3D *r, Point a, Point b, Point c){
     // compute vertex     
-    a = r->shader->vs(a);
-    b = r->shader->vs(b);
-    c = r->shader->vs(c);
+    a = r->shader.vs(a);
+    b = r->shader.vs(b);
+    c = r->shader.vs(c);
 
     if (!isSurfaceVisible(a.p,b.p,c.p, {0,0,1})) 
         return -1;

@@ -11,6 +11,8 @@
 #include "debug.h"
 #include "vertices.h"
 
+#include "./shaders/shaderTest.h"
+
 
 #include <stdio.h>
 #include <Windows.h>
@@ -226,6 +228,9 @@ static Vec4f shadePixel(Point p){
 
 
 void cubeTest(er_Renderer3D *r){
+
+    TestShader a;
+    r->shader = a;
     Point points[ARRAY_COUNT(CubeMesh::vertices)];
     for (int i =0; i<ARRAY_COUNT(CubeMesh::vertices); i++){
         points[i].p = CubeMesh::vertices[i];
@@ -242,12 +247,13 @@ void cubeTest(er_Renderer3D *r){
     Mat4 s = scaleAboutOrigin(200,200,200);
     for (int y=0; y<rows; y++){
         for (int x=0; x<columns; x++){
-            model = translate((x-columns/2)*deltaX/2, (y-rows/2)*deltaY/2,-200) * s;
+            TestShader::model = translate((x-columns/2)*deltaX/2, (y-rows/2)*deltaY/2,-200) * s;
             displayMesh(r, points, ARRAY_COUNT(CubeMesh::vertices), CubeMesh::indices, ARRAY_COUNT(CubeMesh::indices));
         }
     }
     // displayMesh(r, points, ARRAY_COUNT(CubeMesh::vertices), CubeMesh::indices, 6);
 }
+
 
 
 
@@ -258,7 +264,9 @@ void BMPTests(){
 
     newFrame(&r);
     Shader def = {computeVertex, shadePixel};
-    r.shader = &def;
+    r.shader = def;
+    
+
     // interpolationTest(&r);
     // projectiontest(&r);
     cubeTest(&r);
@@ -334,7 +342,7 @@ void rendererTest3DEx(){
             newFrame(&r);
 
             Shader def = {computeVertex, shadePixel};
-            r.shader = &def;
+            r.shader = def;
 
             cubeTest(&r);
             // fillCircle(&r, transformed[0].xy(), 50, RGB_TO_BMP_U32(0,255,255));
@@ -360,9 +368,9 @@ void rendererTest3DEx(){
 
 int main(){
     // rendererTest2D();
-    rendererTest3DEx();
+    // rendererTest3DEx();
     
-    // BMPTests();
+    BMPTests();
     return 0;
     
 }

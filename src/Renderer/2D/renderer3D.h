@@ -1,18 +1,19 @@
 #pragma once
 
+#include <math/vec.h>
+
 #include "../Buffer/er_buffer.h"
 #include "./primitives.h"
-#include <math/vec.h>
+#include "./shader.h"
 #include "./defines.h"
 
 struct er_Renderer3D;
-struct Shader;
 
 struct er_Renderer3D{
     er_Buffer2D framebuffer;
     er_Buffer2Df zBuffer;
 
-    Shader *shader;
+    Shader shader;
 
     er_Renderer3D(size_t w, size_t h){
         framebuffer = er_Buffer2D(w,h);
@@ -22,13 +23,7 @@ struct er_Renderer3D{
 };
 
 
-typedef Point (*VertexShader)(Point p);
-typedef Vec4f (*PixelShader)(Point p);
 
-struct Shader{
-    VertexShader vs;
-    PixelShader ps;    
-};
 
 
 
