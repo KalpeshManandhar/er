@@ -13,15 +13,15 @@
 template <typename T>
 struct er_BufferT{
     T *buffer;
-    size_t w,h;
+    int w,h;
 
     er_BufferT(){}
-    er_BufferT(size_t w, size_t h){
+    er_BufferT(int w, int h){
         buffer = NULL;
         resizeBuffer(w,h);
     }
 
-    int resizeBuffer(size_t w, size_t h){
+    int resizeBuffer(int w, int h){
         if (buffer != NULL)
             er_free(buffer);
         buffer = (T *)er_alloc(w * h * sizeof(*buffer));

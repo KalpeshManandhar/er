@@ -20,7 +20,15 @@
 #endif
 
 
-static bool visibleSurfaceDetection(Vec3f a, Vec3f b, Vec3f c, Vec3f view){
+static bool isSurfaceVisible(Vec3f a, Vec3f b, Vec3f c, Vec3f view){
+    // check if it is clipped out 
+    bool aInside = BetweenInc(0,1,a.x) && BetweenInc(0,1,a.y);
+    bool bInside = BetweenInc(0,1,b.x) && BetweenInc(0,1,b.y);
+    bool cInside = BetweenInc(0,1,c.x) && BetweenInc(0,1,c.y);
+    if (!aInside && !bInside && !cInside){
+        return false;
+    }
+
     Vec3f normal = crossProduct(b-a, c-a);
     return(dotProduct(normal, view) > 0);
 }
@@ -51,6 +59,22 @@ static bool compareAndUpdateZ(er_Renderer3D *r, int x, int y, float z){
 static Vec4f defShadePixel(Point p){
     return(Vec4f(p.color,1.0f));
 }
+
+static Point defComputeVertex(Point p){
+    Vec4f p4(p.p, 1.0f);
+    const float znear = 2.0f, zfar = 1000.0f;
+    const float fovx = 90, fovy = 90;
+
+    //apply transformations
+    Mat4 m = identity<4>(); 
+    m = scaleAboutOrigin(100,100,600);
+    m = translate(100,100,-200) * m;
+    m = perspectiveProjection(fovx, fovy, znear, zfar) * m;
+
+    p.p = (m * p4).xyz_h();
+    return p;
+}
+
 
 //TODO: use a thread pool: currently way too much overhead on creating and joining threads
 int rasterizeEdgeCheck_mt(er_Renderer3D *r, Point p1, Point p2, Point p3){
@@ -241,34 +265,16 @@ int rasterizeScanline(er_Renderer3D *r, Point p1, Point p2, Point p3){
 }
 
 
-static Point defComputeVertex(Point p){
-    Vec4f p4(p.p, 1.0f);
-    const float znear = 2.0f, zfar = 1000.0f;
-    const float fovx = 90, fovy = 90;
-
-    //apply transformations
-    Mat4 m = identity<4>(); 
-    m = scaleAboutOrigin(100,100,600);
-    m = translate(100,100,-200) * m;
-    m = perspectiveProjection(fovx, fovy, znear, zfar) * m;
-
-    p.p = (m * p4).xyz_h();
-    return p;
-}
-
-
 
 
 // a,b,c in anticlockwise order
 int computeTriangle(er_Renderer3D *r, Point a, Point b, Point c){
-
-
     // compute vertex     
     a = r->shader->vs(a);
     b = r->shader->vs(b);
     c = r->shader->vs(c);
 
-    if (!visibleSurfaceDetection(a.p,b.p,c.p, {0,0,1})) 
+    if (!isSurfaceVisible(a.p,b.p,c.p, {0,0,1})) 
         return -1;
     
 

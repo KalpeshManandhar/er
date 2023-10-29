@@ -3,6 +3,7 @@
 #include <Renderer/2D/renderer3D.h>
 
 #include <Renderer/2D/projection.h>
+#include <Renderer/2D/texture.h>
 
 
 #define BMP_USE_VALUES

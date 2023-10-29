@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Window/window_er.h"
+#include <Renderer/Buffer/er_buffer.h>
 #include <math/vec.h>
 
 
