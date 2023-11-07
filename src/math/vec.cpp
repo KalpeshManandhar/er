@@ -17,6 +17,9 @@ Vec2f operator*(Vec2f a, float b){
 Vec2f operator*(float b, Vec2f a){
     return(Vec2f{a.x * b, a.y *b});
 }
+Vec2f operator*(Vec2f a, Vec2f b){
+    return(Vec2f{a.x * b.x, a.y *b.y});
+}
 Vec2f operator/(Vec2f a, float b){
     return(Vec2f{a.x/b, a.y/b});
 }
@@ -76,6 +79,9 @@ Vec3f operator-(Vec3f a, Vec3f b){
 }
 Vec3f operator*(Vec3f a, float b){
     return(Vec3f{a.x * b, a.y *b,a.z*b});
+}
+Vec3f operator*(Vec3f a, Vec3f b){
+    return(Vec3f{a.x * b.x, a.y *b.y,a.z*b.z});
 }
 Vec3f operator*(float b, Vec3f a){
     return(Vec3f{a.x * b, a.y *b, a.z*b});
@@ -160,6 +166,46 @@ Vec3f Barycentric(Vec2f a, Vec2f b, Vec2f c, Vec2f p){
     float u = 1.0f - v - w;
     return(Vec3f{u,v,w}); 
 }
+
+
+
+
+// vec4f
+Vec4f operator+(Vec4f a, Vec4f b){
+    return(Vec4f{a.x + b.x, a.y + b.y,a.z + b.z, a.w+b.w});
+}
+Vec4f operator-(Vec4f a, Vec4f b){
+    return(Vec4f{a.x - b.x, a.y - b.y, a.z-b.z, a.w-b.w});
+}
+Vec4f operator*(Vec4f a, float b){
+    return(Vec4f{a.x * b, a.y *b,a.z*b, a.w*b});
+}
+Vec4f operator*(Vec4f a, Vec4f b){
+    return(Vec4f{a.x * b.x, a.y *b.y,a.z*b.z, a.w * b.w});
+}
+Vec4f operator*(float b, Vec4f a){
+    return(Vec4f{a.x * b, a.y *b, a.z*b, a.w*b});
+}
+Vec4f operator/(Vec4f a, float b){
+    return(Vec4f{a.x/b, a.y/b, a.z/b,a.w/b});
+}
+Vec4f operator-(Vec4f a){
+    return(Vec4f{-a.x, -a.y, -a.z, -a.w});
+}
+void operator+=(Vec4f& a, Vec4f b){
+    a = a+b;
+}
+void operator-=(Vec4f& a, Vec4f b){
+    a = a-b;
+}
+void operator*=(Vec4f& a, float b){
+    a = a*b;
+}
+void operator/=(Vec4f& a, float b){
+    a = a/b;
+}
+
+
 
 
 

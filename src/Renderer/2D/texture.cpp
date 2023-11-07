@@ -11,6 +11,7 @@ er_Texture2D loadTexture(const char * filepath){
     if (!tx.texture.buffer){
         fprintf(stderr, "[ERROR] Cant open image: %s\n", filepath);
     }
+    tx.hexOrder = er_Texture2D::ColorOrder::U32_ABGR;
     return tx;
 
 }

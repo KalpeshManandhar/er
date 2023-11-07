@@ -32,6 +32,7 @@ struct Vec4{
 
     Vec4(){}
     Vec4(Vec3<T> v3, T W){x = v3.x; y = v3.y; z = v3.z; w = W;} 
+    Vec4(T X, T Y, T Z, T W){x = X; y = Y; z = Z; w = W;} 
     Vec3<T> xyz(){
         return Vec3<T>{x,y,z};
     }
@@ -51,6 +52,7 @@ Vec2f operator+(Vec2f, Vec2f);
 Vec2f operator-(Vec2f, Vec2f);
 Vec2f operator*(Vec2f, float);
 Vec2f operator*(float, Vec2f);
+Vec2f operator*(Vec2f, Vec2f);
 Vec2f operator/(Vec2f, float);
 Vec2f operator-(Vec2f);
 void operator+=(Vec2f&, Vec2f);
@@ -87,6 +89,8 @@ bool operator!=(Vec3f, Vec3f);
 float lenSquared(Vec3f);
 float len(Vec3f);
 
+// hadamard product
+Vec3f operator*(Vec3f, Vec3f); 
 float dotProduct(Vec3f, Vec3f);
 Vec3f crossProduct(Vec3f, Vec3f);
 
@@ -98,17 +102,17 @@ int signedAreai(Vec2i p1, Vec2i p2, Vec2i p3);
 Vec3f Barycentric(Vec2f a, Vec2f b, Vec2f c, Vec2f p);
 
 
-
-uint32_t nRGBAToU32(Vec4f color);
-uint32_t nRGBToU32(Vec3f color);
-
-
-
-
-
-
-
-
-
+Vec4f operator+(Vec4f, Vec4f);
+Vec4f operator-(Vec4f, Vec4f);
+Vec4f operator*(Vec4f, float);
+Vec4f operator*(float, Vec4f);
+Vec4f operator/(Vec4f, float);
+Vec4f operator-(Vec4f);
+void operator+=(Vec4f&, Vec4f);
+void operator-=(Vec4f&, Vec4f);
+void operator*=(Vec4f&, float);
+void operator/=(Vec4f&, float);
+bool operator==(Vec4f, Vec4f);
+bool operator!=(Vec4f, Vec4f);
 
 

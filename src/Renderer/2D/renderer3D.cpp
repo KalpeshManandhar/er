@@ -29,6 +29,8 @@ static bool isSurfaceVisible(Vec3f a, Vec3f b, Vec3f c, Vec3f view){
         return false;
     }
 
+    // return true;
+
     Vec3f normal = crossProduct(b-a, c-a);
     return(dotProduct(normal, view) > 0);
 }
@@ -36,8 +38,8 @@ static bool isSurfaceVisible(Vec3f a, Vec3f b, Vec3f c, Vec3f view){
 
 static Point interpolateProperties(Point p1, Point p2, Point p3, Vec3f t){
     Point p;
-    p.p = p1.p*t.x + p2.p*t.y + p3.p*t.z; 
     p.color = p1.color*t.x + p2.color*t.y + p3.color*t.z; 
+    p.uv = p1.uv*t.x + p2.uv*t.y + p3.uv*t.z; 
     return p;
 } 
 
@@ -137,16 +139,9 @@ referenced from https://fgiesen.wordpress.com/2013/02/10/optimizing-the-basic-ra
 */
 int rasterizeEdgeCheck(er_Renderer3D *r, Point p1, Point p2, Point p3){
     // convert to window coordinates from normalized coordinates
-    p1.p.x *= r->framebuffer.w;
-    p1.p.y *= r->framebuffer.h;
-    p2.p.x *= r->framebuffer.w;
-    p2.p.y *= r->framebuffer.h;
-    p3.p.x *= r->framebuffer.w;
-    p3.p.y *= r->framebuffer.h;
-
-    Vec2i a = {int(p1.p.x), int(p1.p.y)};
-    Vec2i b = {int(p2.p.x), int(p2.p.y)};
-    Vec2i c = {int(p3.p.x), int(p3.p.y)};
+    Vec2i a = {int(p1.p.x * r->framebuffer.w), int(p1.p.y * r->framebuffer.h)};
+    Vec2i b = {int(p2.p.x * r->framebuffer.w), int(p2.p.y * r->framebuffer.h)};
+    Vec2i c = {int(p3.p.x * r->framebuffer.w), int(p3.p.y * r->framebuffer.h)};
     
     // find bounding box and clip to window
     int ymax = Min(Max(a.y, Max(b.y, c.y)), r->framebuffer.h-1);
@@ -181,10 +176,15 @@ int rasterizeEdgeCheck(er_Renderer3D *r, Point p1, Point p2, Point p3){
             if ((w1_pixel | w2_pixel | w3_pixel) >= 0){
                 Vec3f tValues = invAreaABC * Vec3f{(float)w1_pixel,(float)w2_pixel,(float)w3_pixel};
 
-                float z = tValues.x * p1.p.z + tValues.y * p2.p.z + tValues.z * p3.p.z;
+                float z = 1.0f/(tValues.x / p1.p.z + tValues.y / p2.p.z + tValues.z / p3.p.z);
+                // float z = tValues.x * p1.p.z + tValues.y * p2.p.z + tValues.z * p3.p.z;
                 // check with depth buffer
                 if (compareAndUpdateZ(r,x,y,z)){
+
                     Point interpolated = interpolateProperties(p1, p2, p3, tValues);
+                    interpolated.p.x = p1.p.x*tValues.x + p2.p.x*tValues.y + p3.p.x*tValues.z; 
+                    interpolated.p.y = p1.p.y*tValues.x + p2.p.y*tValues.y + p3.p.y*tValues.z; 
+                    interpolated.p.z = z; 
 
                     // Vec4f pixelColor = shadePixel(interpolated);
                     Vec4f pixelColor = r->shader.ps(interpolated);
@@ -295,4 +295,26 @@ int displayMesh(er_Renderer3D *r, Point *points, size_t nPoints, uint32_t *indic
         computeTriangle(r, points[indices[i]], points[indices[i+1]], points[indices[i+2]]);
     }
     return 0;
+}
+
+int displayMesh(er_Renderer3D *r, 
+                Vec3f points[], size_t nPoints, 
+                Vec3f normals[], size_t nNormals, 
+                uint32_t indices[], 
+                uint32_t normalIndices[], size_t nIndices)
+{
+    Point a,b,c;
+    for (int i=0; i<nIndices; i+=3){
+        a.p = points[indices[i]];
+        b.p = points[indices[i+1]];
+        c.p = points[indices[i+2]];
+
+        a.normal = normals[normalIndices[i]];
+        b.normal = normals[normalIndices[i+1]];
+        c.normal = normals[normalIndices[i+2]];
+
+        computeTriangle(r, a, b, c);
+    }
+    return 0;
+
 }

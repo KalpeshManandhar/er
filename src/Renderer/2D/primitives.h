@@ -5,6 +5,8 @@
 struct Point{
     Vec3f p;
     Vec3f color;
+    Vec2f uv;
+    Vec3f normal;
 };
 
 

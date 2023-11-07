@@ -2,8 +2,9 @@
 #include <Renderer/2D/renderer.h>
 #include <Renderer/2D/renderer3D.h>
 
-#include <Renderer/2D/projection.h>
+// #include <Renderer/2D/projection.h>
 #include <Renderer/2D/texture.h>
+#include <Renderer/2D/camera.h>
 
 
 #define BMP_USE_VALUES
@@ -11,7 +12,7 @@
 #include "debug.h"
 #include "vertices.h"
 
-#include "./shaders/shaderTest.h"
+#include "./shaders/shaders.h"
 
 
 #include <stdio.h>
@@ -34,6 +35,9 @@ LRESULT CALLBACK win32_windowProc(HWND windowHandle, UINT message, WPARAM wparam
         PostQuitMessage(0);
         printf("CLOSE?");
     }break;
+
+    case WM_KEYDOWN:{
+    }
 
     default:
         break;
@@ -227,10 +231,47 @@ static Vec4f shadePixel(Point p){
 }
 
 
-void cubeTest(er_Renderer3D *r){
+Camera3D c;
 
+
+void textureTests(er_Renderer3D *r){
+    TextureShader a;
+    TextureShader::view = c.lookAt();
+    r->shader = a;
+    Triangle3DEx t;
+    t.a = {{-55,50,-100}, {1,0,0}, {0,0}};
+    t.b = {{50,-50,-100}, {0,1,0}, {1,1}};
+    t.c = {{500,500,-100}, {0,0,1}, {1,0}};
+    computeTriangle(r,t.a,t.b,t.c);
+    // t.a = {{-50,50,-600}, {0,1,0}, {0,0}};
+    // t.b = {{50,-50,-600}, {0,1,0}, {1,1}};
+    // t.c = {{50,50,-600}, {0,1,0}, {1,0}};
+    // computeTriangle(r,t.a,t.b,t.c);
+    
+}
+
+void perspectiveCorrectTests(er_Renderer3D *r){
     TestShader a;
     r->shader = a;
+    Triangle3DEx t;
+    t.a = {{-5.5,5,-10}, {1,0,0}, {0,0}};
+    t.b = {{5,-5,-10}, {0,1,0}, {1,1}};
+    t.c = {{50,50,-100}, {0,0,1}, {1,0}};
+    computeTriangle(r,t.a,t.b,t.c);
+    // t.a = {{-50,50,-600}, {0,1,0}, {0,0}};
+    // t.b = {{50,-50,-600}, {0,1,0}, {1,1}};
+    // t.c = {{50,50,-600}, {0,1,0}, {1,0}};
+    // computeTriangle(r,t.a,t.b,t.c);
+    
+}
+
+
+void cubeTest(er_Renderer3D *r){
+
+    TextureShader a;
+    r->shader = a;
+    TextureShader::view = c.lookAt();
+
     Point points[ARRAY_COUNT(CubeMesh::vertices)];
     for (int i =0; i<ARRAY_COUNT(CubeMesh::vertices); i++){
         points[i].p = CubeMesh::vertices[i];
@@ -241,13 +282,10 @@ void cubeTest(er_Renderer3D *r){
     const int rows = 5;
     const int columns = 5;
 
-    int deltaY = r->framebuffer.h/(rows+1);
-    int deltaX = r->framebuffer.w/(columns+1);
-
     Mat4 s = scaleAboutOrigin(200,200,200);
     for (int y=0; y<rows; y++){
         for (int x=0; x<columns; x++){
-            TestShader::model = translate((x-columns/2)*deltaX/2, (y-rows/2)*deltaY/2,-200) * s;
+            TextureShader::model = translate((x-columns/2)*100, (y-rows/2)*100,0) * s;
             displayMesh(r, points, ARRAY_COUNT(CubeMesh::vertices), CubeMesh::indices, ARRAY_COUNT(CubeMesh::indices));
         }
     }
@@ -258,20 +296,29 @@ void cubeTest(er_Renderer3D *r){
 
 
 void BMPTests(){
-    const int w = 1280, h = 720;
+    const int scaleDown = 2; 
+    const int w = 1280/scaleDown, h = 720/scaleDown;
     er_Renderer3D r(w,h);
     BMP_File *f = newBMP(w,h,r.framebuffer.buffer,32);
 
+    c.right = Vec3f{1,0,0};
+    c.up = Vec3f{0,1,0};
+    c.front = Vec3f{0,0,1};
+    
+    c.pos = Vec3f{0,0,50};
+
     newFrame(&r);
-    Shader def = {computeVertex, shadePixel};
-    r.shader = def;
+    // Shader def = {computeVertex, shadePixel};
+    // r.shader = def;
     
 
     // interpolationTest(&r);
     // projectiontest(&r);
     cubeTest(&r);
-
     writeBMP(f, "cubetestsss.bmp", BMP_WRITE_NONE);
+    // textureTests(&r);
+    // writeBMP(f, "textureTest.bmp", BMP_WRITE_NONE);
+
 
 }
 
@@ -286,7 +333,8 @@ void rendererTest3DEx(){
 
     RegisterClassA(&windowClass);
 
-    const int w = 1280, h = 720;
+    const float scaleDown = 1.5; 
+    const int w = 1280/scaleDown, h = 720/scaleDown;
     er_Renderer3D r(w,h);
 
     HWND windowHandle = CreateWindowExA(
@@ -318,10 +366,14 @@ void rendererTest3DEx(){
     const float frameLimit = 1.0f/fpsCap;
     const float multiplier = 280/fpsCap;
 
-    Vec3f triangle[3]={
-        {400,400,1}, {450,400,1}, {400,450,1}
-    };
+    c.right = Vec3f{1,0,0};
+    c.up = Vec3f{0,1,0};
+    c.front = Vec3f{0,0,1};
     
+    c.pos = Vec3f{0,0,50};
+
+    Vec3f target = Vec3f{0,0,0};
+
 
     if (windowHandle){
         bool isRunning = true;
@@ -341,10 +393,16 @@ void rendererTest3DEx(){
 
             newFrame(&r);
 
+            c.pos = Vec3f{50 * cosf(Radians(angle)), 0, 50 * sinf(Radians(angle))};
+            c.updateOrientation(target, Vec3f{0,1,0});
+
+
+
             Shader def = {computeVertex, shadePixel};
             r.shader = def;
 
             cubeTest(&r);
+            // textureTests(&r);
             // fillCircle(&r, transformed[0].xy(), 50, RGB_TO_BMP_U32(0,255,255));
 
             win32_display(windowHandle, &r.framebuffer, &bmpinfo);
@@ -358,19 +416,19 @@ void rendererTest3DEx(){
             timecounter += frametime;
             printf("FPS : %0.4f  ", framecounter/timecounter);
 
-            // if(frametime < frameLimit)
-                // Sleep((frameLimit - frametime)*1000.0f);
+            if(frametime < frameLimit)
+                Sleep((frameLimit - frametime)*1000.0f);
         }
     }
 }
 
 
 
-int main(){
+int aaamain(){
     // rendererTest2D();
-    // rendererTest3DEx();
+    rendererTest3DEx();
     
-    BMPTests();
+    // BMPTests();
     return 0;
     
 }
