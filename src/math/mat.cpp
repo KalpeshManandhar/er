@@ -26,11 +26,11 @@ Mat4 scaleAboutOrigin(float sx, float sy, float sz){
         sx,0,0,0,
         0,sy,0,0,
         0,0,sz,0,
-        0,0,0,14
+        0,0,0,1
     };
 }
 
-Mat4 translate(float tx, float ty, float tz){
+Mat4 translate3D(float tx, float ty, float tz){
     return Mat4{
         1,0,0,tx,
         0,1,0,ty,
@@ -48,7 +48,7 @@ Mat3 scaleAboutOrigin2D(float sx, float sy){
     };
 }
 
-Mat3 translate(float tx, float ty){
+Mat3 translate2D(float tx, float ty){
     return Mat3{
         1,0,tx,
         0,1,ty,
@@ -69,8 +69,8 @@ Mat3 rotateAboutOrigin2D(float degrees){
 
 
 Mat3 rotateAboutPoint2D(float degrees, Vec2f pivot){
-    Mat3 m = translate(-pivot.x, -pivot.y);
+    Mat3 m = translate2D(-pivot.x, -pivot.y);
     m = rotateAboutOrigin2D(degrees) *m;
-    m = translate(pivot.x, pivot.y) *m;
+    m = translate2D(pivot.x, pivot.y) *m;
     return m;
 }

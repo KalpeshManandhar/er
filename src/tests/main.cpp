@@ -6,6 +6,8 @@
 #include <Renderer/2D/texture.h>
 #include <Renderer/2D/camera.h>
 
+#include <Loader/objLoader.h>
+
 
 #define BMP_USE_VALUES
 #include "bmp.h"
@@ -208,36 +210,13 @@ void newFrame(er_Renderer3D *r){
 
 
 
-
-
-
-Mat4 model;
-static Point computeVertex(Point p){
-    Vec4f p4(p.p, 1.0f);
-    const float znear = 2.0f, zfar = 1000.0f;
-    const float fovx = 90, fovy = 90;
-
-    //apply transformations
-    Mat4 m = identity<4>(); 
-    m = model;
-    m = perspectiveProjection(fovx, fovy, znear, zfar) * m;
-
-    p.p = (m * p4).xyz_h();
-    return p;
-}
-
-static Vec4f shadePixel(Point p){
-    return(Vec4f(p.color,1.0f));
-}
-
-
 Camera3D c;
 
 
 void textureTests(er_Renderer3D *r){
     TextureShader a;
-    TextureShader::view = c.lookAt();
-    r->shader = a;
+    a.view = c.lookAt();
+    useShader(r, &a);
     Triangle3DEx t;
     t.a = {{-55,50,-100}, {1,0,0}, {0,0}};
     t.b = {{50,-50,-100}, {0,1,0}, {1,1}};
@@ -252,7 +231,7 @@ void textureTests(er_Renderer3D *r){
 
 void perspectiveCorrectTests(er_Renderer3D *r){
     TestShader a;
-    r->shader = a;
+    useShader(r, &a);
     Triangle3DEx t;
     t.a = {{-5.5,5,-10}, {1,0,0}, {0,0}};
     t.b = {{5,-5,-10}, {0,1,0}, {1,1}};
@@ -268,13 +247,13 @@ void perspectiveCorrectTests(er_Renderer3D *r){
 
 void cubeTest(er_Renderer3D *r){
 
-    TextureShader a;
-    r->shader = a;
-    TextureShader::view = c.lookAt();
+    TestShader a;
+    useShader(r, &a);
+    a.view = c.lookAt();
 
-    Point points[ARRAY_COUNT(CubeMesh::vertices)];
-    for (int i =0; i<ARRAY_COUNT(CubeMesh::vertices); i++){
-        points[i].p = CubeMesh::vertices[i];
+    Point points[ARRAY_COUNT(CUBES::vertices)];
+    for (int i =0; i<ARRAY_COUNT(CUBES::vertices); i++){
+        points[i].pos = CUBES::vertices[i];
         points[i].color = colors[i%ARRAY_COUNT(colors)];
         // points[i].color = colors[0];
     }
@@ -285,11 +264,96 @@ void cubeTest(er_Renderer3D *r){
     Mat4 s = scaleAboutOrigin(200,200,200);
     for (int y=0; y<rows; y++){
         for (int x=0; x<columns; x++){
-            TextureShader::model = translate((x-columns/2)*100, (y-rows/2)*100,0) * s;
-            displayMesh(r, points, ARRAY_COUNT(CubeMesh::vertices), CubeMesh::indices, ARRAY_COUNT(CubeMesh::indices));
+            a.model = translate3D((x-columns/2)*100, (y-rows/2)*100,0) * s;
+            displayMesh(r, points, ARRAY_COUNT(CUBES::vertices), CUBES::indices, ARRAY_COUNT(CUBES::indices));
         }
     }
+    useShader(r, 0);
     // displayMesh(r, points, ARRAY_COUNT(CubeMesh::vertices), CubeMesh::indices, 6);
+}
+
+
+void lightingTest(er_Renderer3D *r){
+    const int rows = 1;
+    const int columns = 1;
+
+    struct Scene{
+        PointLight pLights;
+        Cube cubes[rows][columns];
+        Cube lightCube;
+    }scene;
+
+
+    TestShader defaultShader;
+    useShader(r, &defaultShader);
+    defaultShader.view = c.lookAt();    
+
+    scene.pLights = PointLight(Vec3f{-100,0,-125});
+    scene.lightCube.center = scene.pLights.lightPos;
+    scene.lightCube.radii[0] = 25.0f;
+    scene.lightCube.radii[1] = 25.0f;
+    scene.lightCube.radii[2] = 25.0f;
+    
+    renderCube(r, scene.lightCube, Colors::WHITE);
+    
+    LightingShader a;
+    // TestShader a;
+    useShader(r, &a);
+    a.cameraPos = c.pos;
+    a.nPointLights = 1;
+    a.pointLights = &scene.pLights;
+    a.view = c.lookAt();    
+
+
+    for (int y=0; y<rows; y++){
+        for (int x=0; x<columns; x++){
+            scene.cubes[y][x].center = Vec3f{(x-columns/2)*100.0f, (y-rows/2)*100.0f,0.0f};
+            scene.cubes[y][x].radii[0] = 75.0f;
+            scene.cubes[y][x].radii[1] = 75.0f;
+            scene.cubes[y][x].radii[2] = 75.0f;
+            renderCube(r, scene.cubes[y][x], Colors::GREEN);
+        }
+    }
+    useShader(r, 0);
+
+}
+
+void modelTest(er_Renderer3D *r, ObjFileInfo *f){
+    struct Scene{
+        PointLight pLights;
+        Cube lightCube;
+    }scene;
+    
+    TestShader defaultShader;
+    useShader(r, &defaultShader);
+
+    r->shader->model = translate3D(0,-200,0) * scaleAboutOrigin(40,40,40);
+    r->shader->view = c.lookAt();
+    // defaultShader.cameraPos = c.pos;
+    // defaultShader.nPointLights = 1;
+    // defaultShader.pointLights = &scene.pLights;
+
+
+    
+    for (auto mesh: f->meshes){
+        for (auto submesh: mesh.renderInfo){
+            displayMesh(r, &f->vertices[0], f->vertices.size(), 
+                            &f->normals[0], f->normals.size(), 
+                            &submesh.vIndices[0], &submesh.nIndices[0], submesh.vIndices.size());
+            // break;
+        }
+        // break;
+    } 
+}
+
+
+void cubeSs(er_Renderer3D *r){
+    TestShader defaultShader;
+    useShader(r, &defaultShader);
+
+    r->shader->model = scaleAboutOrigin(100,100,100);
+    r->shader->view = c.lookAt();
+    displayMesh(r, CUBES::vertices,ARRAY_COUNT(CUBES::vertices),0,0, CUBES::indices,0, ARRAY_COUNT(CUBES::indices));
 }
 
 
@@ -315,12 +379,17 @@ void BMPTests(){
     // interpolationTest(&r);
     // projectiontest(&r);
     cubeTest(&r);
-    writeBMP(f, "cubetestsss.bmp", BMP_WRITE_NONE);
+    // lightingTest(&r);
+    writeBMP(f, "rendercubetest.bmp", BMP_WRITE_NONE);
     // textureTests(&r);
     // writeBMP(f, "textureTest.bmp", BMP_WRITE_NONE);
 
 
 }
+
+
+
+
 
 
 
@@ -370,9 +439,14 @@ void rendererTest3DEx(){
     c.up = Vec3f{0,1,0};
     c.front = Vec3f{0,0,1};
     
-    c.pos = Vec3f{0,0,50};
+    float rad = 300.0f;
+    c.pos = Vec3f{0,50,rad};
 
     Vec3f target = Vec3f{0,0,0};
+
+    ObjFileInfo f = loadObj("./models/plant.obj");
+
+    
 
 
     if (windowHandle){
@@ -393,15 +467,15 @@ void rendererTest3DEx(){
 
             newFrame(&r);
 
-            c.pos = Vec3f{50 * cosf(Radians(angle)), 0, 50 * sinf(Radians(angle))};
+            c.pos = Vec3f{rad * cosf(Radians(angle)), 0, rad * sinf(Radians(angle))};
             c.updateOrientation(target, Vec3f{0,1,0});
 
 
 
-            Shader def = {computeVertex, shadePixel};
-            r.shader = def;
-
-            cubeTest(&r);
+            // cubeSs(&r);
+            modelTest(&r, &f);
+            // lightingTest(&r);
+            // cubeTest(&r);
             // textureTests(&r);
             // fillCircle(&r, transformed[0].xy(), 50, RGB_TO_BMP_U32(0,255,255));
 
@@ -424,11 +498,13 @@ void rendererTest3DEx(){
 
 
 
-int aaamain(){
+
+
+int main(){
     // rendererTest2D();
     rendererTest3DEx();
     
-    // BMPTests();
+    BMPTests();
     return 0;
     
 }

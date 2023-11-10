@@ -112,7 +112,9 @@ void operator+=(Vec4f&, Vec4f);
 void operator-=(Vec4f&, Vec4f);
 void operator*=(Vec4f&, float);
 void operator/=(Vec4f&, float);
-bool operator==(Vec4f, Vec4f);
-bool operator!=(Vec4f, Vec4f);
 
-
+namespace Preset{
+    const Vec3f X_AXIS = Vec3f{1.0f,0,0};
+    const Vec3f Y_AXIS = Vec3f{0,1.0f,0};
+    const Vec3f Z_AXIS = Vec3f{0,0,1.0f};
+}

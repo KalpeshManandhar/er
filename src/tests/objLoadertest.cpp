@@ -1,7 +1,7 @@
 #include <Loader/objLoader.h>
 
 
-int main(int argc, char **argv){
+int loadermain(int argc, char **argv){
     if (argc < 2){
         printf("Usage: ./loader.exe <path to obj>");
         return -1;

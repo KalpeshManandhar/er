@@ -4,10 +4,13 @@
 #include <vector>
 
 
+#define NAME_ARRAY_SIZE 64
 
 
 struct Material{
-    float ns, ka, kd, ks, ke, Ni, d;
+    char name[NAME_ARRAY_SIZE];
+    float ns, Ni, d;
+    Vec3f ka, kd, ks, ke;
 };
 
 
@@ -18,19 +21,10 @@ struct MtlFileInfo{
 
 
 
-struct ObjMesh{
-    char name[64];
-
-    std::vector<Vec3f> vertices;
-    std::vector<Vec2f> texCoords;
-    std::vector<Vec3f> normals;
-
-    size_t nVertices;
-    size_t ntexCoords;
-    size_t nNormals;
-
+struct ObjMeshData{
+    char name[NAME_ARRAY_SIZE];
     struct RenderInfo{
-        char materialName[64];
+        char materialName[NAME_ARRAY_SIZE];
 
         std::vector<uint32_t> vIndices;
         std::vector<uint32_t> tIndices;
@@ -41,8 +35,13 @@ struct ObjMesh{
 };
 
 struct ObjFileInfo{
+
     char mtlFile[64];
-    std::vector<ObjMesh> meshes;
+    std::vector<ObjMeshData> meshes;
+
+    std::vector<Vec3f> vertices;
+    std::vector<Vec2f> texCoords;
+    std::vector<Vec3f> normals;
 };
 
 ObjFileInfo loadObj(const char *path);

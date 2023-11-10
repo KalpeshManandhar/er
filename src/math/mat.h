@@ -57,4 +57,4 @@ Mat3 rotateAboutPoint2D(float degrees, Vec2f pivot);
 
 
 Mat4 scaleAboutOrigin(float sx, float sy, float sz);
-Mat4 translate(float tx, float ty, float tz);
+Mat4 translate3D(float tx, float ty, float tz);

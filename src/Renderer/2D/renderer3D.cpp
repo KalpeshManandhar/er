@@ -19,6 +19,40 @@
 #define nRGBA_TO_U32(r,g,b,a)   RGBA_TO_U32(uint8_t((r)*255),uint8_t((g)*255),uint8_t((b)*255),uint8_t((a)*255))
 #endif
 
+Vec4f Shader::ps(Point p) {
+    return(Vec4f(p.color, 1.0f));
+}
+
+Point Shader::vs(Point p) {
+    Vec4f p4(p.pos, 1.0f);
+    const float znear = 2.0f, zfar = 1000.0f;
+    const float fovx = 90, fovy = 90;
+
+    //apply transformations
+    Mat4 m = model; 
+    m = view * m;
+    m = perspectiveProjection(fovx, fovy, znear, zfar) * m;
+
+    p.pos = (m * p4).xyz_h();
+    return p;
+}
+
+
+namespace ShaderPreset{
+    Shader DEFAULT_SHADER;
+}
+
+
+
+er_Renderer3D::er_Renderer3D(size_t w, size_t h){
+    framebuffer = er_Buffer2D(w,h);
+    zBuffer = er_Buffer2Df(w,h);
+    shader = &ShaderPreset::DEFAULT_SHADER;
+}
+
+
+
+
 
 static bool isSurfaceVisible(Vec3f a, Vec3f b, Vec3f c, Vec3f view){
     // check if it is clipped out 
@@ -36,9 +70,20 @@ static bool isSurfaceVisible(Vec3f a, Vec3f b, Vec3f c, Vec3f view){
 }
 
 
+void useShader(er_Renderer3D *r, Shader *s){
+    if (s){
+        r->shader = s;
+        return;
+    }
+    r->shader = &ShaderPreset::DEFAULT_SHADER;
+}
+
+
+
 static Point interpolateProperties(Point p1, Point p2, Point p3, Vec3f t){
     Point p;
     p.color = p1.color*t.x + p2.color*t.y + p3.color*t.z; 
+    p.worldPos = p1.worldPos*t.x + p2.worldPos*t.y + p3.worldPos*t.z; 
     p.uv = p1.uv*t.x + p2.uv*t.y + p3.uv*t.z; 
     return p;
 } 
@@ -58,31 +103,13 @@ static bool compareAndUpdateZ(er_Renderer3D *r, int x, int y, float z){
 }
 
 
-static Vec4f defShadePixel(Point p){
-    return(Vec4f(p.color,1.0f));
-}
-
-static Point defComputeVertex(Point p){
-    Vec4f p4(p.p, 1.0f);
-    const float znear = 2.0f, zfar = 1000.0f;
-    const float fovx = 90, fovy = 90;
-
-    //apply transformations
-    Mat4 m = identity<4>(); 
-    m = scaleAboutOrigin(100,100,600);
-    m = translate(100,100,-200) * m;
-    m = perspectiveProjection(fovx, fovy, znear, zfar) * m;
-
-    p.p = (m * p4).xyz_h();
-    return p;
-}
 
 
 //TODO: use a thread pool: currently way too much overhead on creating and joining threads
-int rasterizeEdgeCheck_mt(er_Renderer3D *r, Point p1, Point p2, Point p3){
-    Vec2f a = p1.p.xy();
-    Vec2f b = p2.p.xy();
-    Vec2f c = p3.p.xy();
+static int rasterizeEdgeCheck_mt(er_Renderer3D *r, Point p1, Point p2, Point p3){
+    Vec2f a = p1.pos.xy();
+    Vec2f b = p2.pos.xy();
+    Vec2f c = p3.pos.xy();
 
 
     const int numThreads = 2;
@@ -112,7 +139,7 @@ int rasterizeEdgeCheck_mt(er_Renderer3D *r, Point p1, Point p2, Point p3){
                         Vec3f tValues = invAreaABC * Vec3f{(float)w1_pixel,(float)w2_pixel,(float)w3_pixel};
                         Point interpolated = interpolateProperties(p1, p2, p3, tValues);
 
-                        Vec4f pixelColor = defShadePixel(interpolated);
+                        Vec4f pixelColor = r->shader->ps(interpolated);
                         uint32_t color = nRGBA_TO_U32(pixelColor.x, pixelColor.y, pixelColor.z, pixelColor.w);
                         r->framebuffer.setValue(x,y,color);
                     }
@@ -137,11 +164,11 @@ int rasterizeEdgeCheck_mt(er_Renderer3D *r, Point p1, Point p2, Point p3){
 /* 
 referenced from https://fgiesen.wordpress.com/2013/02/10/optimizing-the-basic-rasterizer/
 */
-int rasterizeEdgeCheck(er_Renderer3D *r, Point p1, Point p2, Point p3){
+static int rasterizeEdgeCheck(er_Renderer3D *r, Point p1, Point p2, Point p3){
     // convert to window coordinates from normalized coordinates
-    Vec2i a = {int(p1.p.x * r->framebuffer.w), int(p1.p.y * r->framebuffer.h)};
-    Vec2i b = {int(p2.p.x * r->framebuffer.w), int(p2.p.y * r->framebuffer.h)};
-    Vec2i c = {int(p3.p.x * r->framebuffer.w), int(p3.p.y * r->framebuffer.h)};
+    Vec2i a = {int(p1.pos.x * r->framebuffer.w), int(p1.pos.y * r->framebuffer.h)};
+    Vec2i b = {int(p2.pos.x * r->framebuffer.w), int(p2.pos.y * r->framebuffer.h)};
+    Vec2i c = {int(p3.pos.x * r->framebuffer.w), int(p3.pos.y * r->framebuffer.h)};
     
     // find bounding box and clip to window
     int ymax = Min(Max(a.y, Max(b.y, c.y)), r->framebuffer.h-1);
@@ -176,18 +203,18 @@ int rasterizeEdgeCheck(er_Renderer3D *r, Point p1, Point p2, Point p3){
             if ((w1_pixel | w2_pixel | w3_pixel) >= 0){
                 Vec3f tValues = invAreaABC * Vec3f{(float)w1_pixel,(float)w2_pixel,(float)w3_pixel};
 
-                float z = 1.0f/(tValues.x / p1.p.z + tValues.y / p2.p.z + tValues.z / p3.p.z);
-                // float z = tValues.x * p1.p.z + tValues.y * p2.p.z + tValues.z * p3.p.z;
+                float z = 1.0f/(tValues.x / p1.pos.z + tValues.y / p2.pos.z + tValues.z / p3.pos.z);
+                // float z = tValues.x * p1.pos.z + tValues.y * p2.pos.z + tValues.z * p3.pos.z;
                 // check with depth buffer
                 if (compareAndUpdateZ(r,x,y,z)){
 
                     Point interpolated = interpolateProperties(p1, p2, p3, tValues);
-                    interpolated.p.x = p1.p.x*tValues.x + p2.p.x*tValues.y + p3.p.x*tValues.z; 
-                    interpolated.p.y = p1.p.y*tValues.x + p2.p.y*tValues.y + p3.p.y*tValues.z; 
-                    interpolated.p.z = z; 
+                    interpolated.pos.x = p1.pos.x*tValues.x + p2.pos.x*tValues.y + p3.pos.x*tValues.z; 
+                    interpolated.pos.y = p1.pos.y*tValues.x + p2.pos.y*tValues.y + p3.pos.y*tValues.z; 
+                    interpolated.pos.z = z; 
 
                     // Vec4f pixelColor = shadePixel(interpolated);
-                    Vec4f pixelColor = r->shader.ps(interpolated);
+                    Vec4f pixelColor = r->shader->ps(interpolated);
 
                     uint32_t color = nRGBA_TO_U32(pixelColor.x, pixelColor.y, pixelColor.z, pixelColor.w);
                     r->framebuffer.setValue(x,y,color);
@@ -210,9 +237,9 @@ int rasterizeEdgeCheck(er_Renderer3D *r, Point p1, Point p2, Point p3){
 
 
 int rasterizeScanline(er_Renderer3D *r, Point p1, Point p2, Point p3){
-    Vec2f a = p1.p.xy();
-    Vec2f b = p2.p.xy();
-    Vec2f c = p3.p.xy();
+    Vec2f a = p1.pos.xy();
+    Vec2f b = p2.pos.xy();
+    Vec2f c = p3.pos.xy();
 
     Vec2f start = a,end = b, third = c;
     // find points with largest y separation: start and end for sampling, third is remaining point
@@ -255,7 +282,7 @@ int rasterizeScanline(er_Renderer3D *r, Point p1, Point p2, Point p3){
             Vec3f tvalues = Barycentric(a,b,c, Vec2f{(float)xScan, yLine});
             Point interpolated = interpolateProperties(p1, p2, p3, tvalues);
 
-            Vec4f pixelColor = defShadePixel(interpolated);
+            Vec4f pixelColor = r->shader->ps(interpolated);
             uint32_t color = nRGBA_TO_U32(pixelColor.x, pixelColor.y, pixelColor.z, pixelColor.w);
             r->framebuffer.setValue(xScan, yLine, color);  
         }
@@ -269,12 +296,14 @@ int rasterizeScanline(er_Renderer3D *r, Point p1, Point p2, Point p3){
 
 // a,b,c in anticlockwise order
 int computeTriangle(er_Renderer3D *r, Point a, Point b, Point c){
-    // compute vertex     
-    a = r->shader.vs(a);
-    b = r->shader.vs(b);
-    c = r->shader.vs(c);
+    r->shader->surfaceNormal = normalize(crossProduct(b.pos-a.pos, c.pos-a.pos));
 
-    if (!isSurfaceVisible(a.p,b.p,c.p, {0,0,1})) 
+    // compute vertex     
+    a = r->shader->vs(a);
+    b = r->shader->vs(b);
+    c = r->shader->vs(c);
+
+    if (!isSurfaceVisible(a.pos,b.pos,c.pos, {0,0,1})) 
         return -1;
     
 
@@ -305,13 +334,15 @@ int displayMesh(er_Renderer3D *r,
 {
     Point a,b,c;
     for (int i=0; i<nIndices; i+=3){
-        a.p = points[indices[i]];
-        b.p = points[indices[i+1]];
-        c.p = points[indices[i+2]];
+        a.pos = points[indices[i]];
+        b.pos = points[indices[i+1]];
+        c.pos = points[indices[i+2]];
 
-        a.normal = normals[normalIndices[i]];
-        b.normal = normals[normalIndices[i+1]];
-        c.normal = normals[normalIndices[i+2]];
+        if (normals){
+            a.normal = normals[normalIndices[i]];
+            b.normal = normals[normalIndices[i+1]];
+            c.normal = normals[normalIndices[i+2]];
+        }
 
         computeTriangle(r, a, b, c);
     }

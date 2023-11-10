@@ -1,10 +1,11 @@
 #include "./lexer.h"
 #include "./objLoader.h"
 
-
 #define for_range(i, st, end) for(int i=st; i<end; i++)
+#define vec3_expand(v)     (v.x),(v.y),(v.z)
 
-void meshDump(const ObjMesh &m){
+
+void meshDump(const ObjMeshData &m){
     printf("Mesh: %s\n", m.name);
     // printf("Vertices\n");
     // for_range(i,0,m.vertices.size()){
@@ -21,9 +22,9 @@ void meshDump(const ObjMesh &m){
 
     for_range(j, 0, m.renderInfo.size()){
         printf("Material: %s\n", m.renderInfo[j].materialName);
-        printf("Vertices: %d\n", m.renderInfo[j].vIndices.size());
-        printf("Texcoords: %d\n", m.renderInfo[j].tIndices.size());
-        printf("Normals: %d\n", m.renderInfo[j].nIndices.size());
+        printf("Vertices: %llu\n", m.renderInfo[j].vIndices.size());
+        printf("Texcoords: %llu\n", m.renderInfo[j].tIndices.size());
+        printf("Normals: %llu\n", m.renderInfo[j].nIndices.size());
     }
 
     
@@ -31,13 +32,115 @@ void meshDump(const ObjMesh &m){
 }
 
 
+void MaterialDump(const Material &m){
+    printf("Material: %s\n", m.name);
+
+    printf("ns: %f \n", m.ns);
+    printf("ka: %f, %f, %f\n", vec3_expand(m.ka));
+    printf("kd: %f, %f, %f\n", vec3_expand(m.kd));
+    printf("ks: %f, %f, %f\n", vec3_expand(m.ks));
+    printf("ke: %f, %f, %f\n", vec3_expand(m.ke));
+    printf("ni: %f\n", m.Ni);
+    printf("\n\n");
+}
+
+Material loadMtl(Lexer &l){
+    Material m;
+
+    while (l.cursor < l.fileSize){
+        DataString identifier = l.skipAndParseString();
+
+        // ns - specular constant
+        if (compare(identifier, "Ns")){
+            float Ns = l.skipAndParseFloat();
+            m.ns = Ns;
+        }
+        // ka - ambient color
+        else if (compare(identifier, "Ka")){
+            Vec3f Ka; 
+            Ka.x = l.skipAndParseFloat();
+            Ka.y = l.skipAndParseFloat();
+            Ka.z = l.skipAndParseFloat();
+            m.ka = Ka;
+        }
+        // kd - diffuse color
+        else if (compare(identifier, "Kd")){
+            Vec3f Kd; 
+            Kd.x = l.skipAndParseFloat();
+            Kd.y = l.skipAndParseFloat();
+            Kd.z = l.skipAndParseFloat();
+            m.kd = Kd;
+        }
+        // ks - specular color
+        else if (compare(identifier, "Ks")){
+            Vec3f Ks; 
+            Ks.x = l.skipAndParseFloat();
+            Ks.y = l.skipAndParseFloat();
+            Ks.z = l.skipAndParseFloat();
+            m.ks = Ks;
+        }
+        // d - opacity
+        else if (compare(identifier, "d")){
+            float d = l.skipAndParseFloat();
+            m.d = d;
+        }
+        // Ni - refractive index
+        else if (compare(identifier, "d")){
+            float d = l.skipAndParseFloat();
+            m.d = d;
+        }
+        else if (compare(identifier, "Illum")){
+            int illum = l.skipAndParseInt();
+        }
+        else {
+            l.revertToLineStart();
+            break;
+        }
+    }
+    return m;
+}
+
+
+
+MtlFileInfo loadMtlFile(const char *path){
+    MtlFileInfo mtlFile;
+    Lexer l;
+    l.loadFile(path);
+    
+    while (l.cursor < l.fileSize){
+        // skip commented line in .obj
+        if(l.data[l.cursor] == '#'){
+            l.skipCurrentLine();
+            continue;
+        }
+
+        DataString identifier = l.skipAndParseString();
+
+        // new mesh 
+        if (compare(identifier, "newmtl")){
+            DataString materialName = l.skipAndParseString();
+
+            l.skipCurrentLine();
+            Material m = loadMtl(l);
+            
+            copyToArray(materialName, m.name, sizeof(m.name)); 
+            MaterialDump(m);
+            
+            mtlFile.materials.push_back(m);
+        }
+        
+        l.skipCurrentLine();
+    }
+
+    return(mtlFile);
+}
 
 
 
 
 
-ObjMesh loadMesh(Lexer &l){
-    ObjMesh m;
+ObjMeshData loadMesh(Lexer &l, ObjFileInfo *f){
+    ObjMeshData m;
     while (l.cursor < l.fileSize){
         DataString identifier = l.skipAndParseString();
         
@@ -47,14 +150,14 @@ ObjMesh loadMesh(Lexer &l){
             v.x = l.skipAndParseFloat();
             v.y = l.skipAndParseFloat();
             v.z = l.skipAndParseFloat();
-            m.vertices.push_back(v);
+            f->vertices.push_back(v);
         }
         // texture coordinates
         else if (compare(identifier, "vt")){
             Vec2f tCoords;
             tCoords.x = l.skipAndParseFloat();
             tCoords.y = l.skipAndParseFloat();
-            m.texCoords.push_back(tCoords);
+            f->texCoords.push_back(tCoords);
         }
         // vertex normal
         else if (compare(identifier, "vn")){
@@ -62,7 +165,7 @@ ObjMesh loadMesh(Lexer &l){
             normal.x = l.skipAndParseFloat();
             normal.y = l.skipAndParseFloat();
             normal.z = l.skipAndParseFloat();
-            m.normals.push_back(normal);
+            f->normals.push_back(normal);
         }
         // 
         else if (compare(identifier, "s")){
@@ -70,7 +173,7 @@ ObjMesh loadMesh(Lexer &l){
         }
         // use material 
         else if (compare(identifier, "usemtl")){
-            ObjMesh::RenderInfo info = {};
+            ObjMeshData::RenderInfo info = {};
             DataString materialName = l.skipAndParseString();
             copyToArray(materialName, info.materialName, sizeof(info.materialName));
 
@@ -79,9 +182,9 @@ ObjMesh loadMesh(Lexer &l){
         // faces data (indices)
         else if (compare(identifier, "f")){
             for_range(i, 0, 3){
-                int vIndex = l.skipAndParseInt();
-                int tIndex = l.skipAndParseInt();
-                int nIndex = l.skipAndParseInt();
+                int vIndex = l.skipAndParseInt()-1;
+                int tIndex = l.skipAndParseInt()-1;
+                int nIndex = l.skipAndParseInt()-1;
                 m.renderInfo.back().vIndices.push_back(vIndex);
                 m.renderInfo.back().tIndices.push_back(tIndex);
                 m.renderInfo.back().nIndices.push_back(nIndex);
@@ -115,14 +218,26 @@ ObjFileInfo loadObj(const char *path){
 
         // use material 
         if (compare(identifier, "mtllib")){
+            DataString mtlFilePath = l.skipAndParseString();
 
+            DataString relativeDir = newDataString(path);
+            int endBackSlash = findCharFromBack(relativeDir, '\\') + 1;
+            if (endBackSlash == -1) endBackSlash = findCharFromBack(relativeDir, '/') +1;
+
+
+            copyToArray(relativeDir, f.mtlFile, sizeof(f.mtlFile));
+            copyToArray(mtlFilePath, f.mtlFile + endBackSlash, sizeof(f.mtlFile) - endBackSlash);
+            
+            loadMtlFile(f.mtlFile);
+
+
+            // TODO: add the materials
         }
         // mesh name 
         else if (compare(identifier, "o")){
-            l.skipSpaces();
             DataString name = l.skipAndParseString();
             l.skipCurrentLine();
-            ObjMesh m = loadMesh(l);
+            ObjMeshData m = loadMesh(l, &f);
             copyToArray(name, m.name, sizeof(m.name));            
             meshDump(m);
             f.meshes.push_back(m);

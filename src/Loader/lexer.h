@@ -34,9 +34,34 @@ static bool compare(DataString s, const char *str){
 }
 
 static void copyToArray(DataString src, char dest[], int destSize){
-    memcpy_s(dest, destSize-1,  (char *)src.str, src.len); 
-    int end = (src.len < (destSize-1))?src.len:destSize-1;
-    dest[end] = 0;
+    int count = (src.len < (destSize-1))?src.len:destSize-1;
+    memcpy_s(dest, destSize-1,  (char *)src.str, count); 
+    dest[count] = 0;
+}
+
+static DataString newDataString(const char *str){
+    DataString d;
+    d.str = (uint8_t *)str;
+    d.len = strlen(str);
+    return d;
+}
+
+static int findCharFromFront(DataString s, char c){
+    for (int i=0; i<s.len; i++){
+        if (c == s.str[i]){
+            return i;
+        }
+    }
+    return -1;
+}
+
+static int findCharFromBack(DataString s, char c){
+    for (int i=s.len - 1; i>=0; i--){
+        if (c == s.str[i]){
+            return i;
+        }
+    }
+    return -1;
 }
 
 
@@ -67,6 +92,7 @@ struct Lexer{
         DataBuffer d = loadFileToBuffer(path);
         data = d.data;
         fileSize = d.fileSize;
+        printf("[Lexer] Loaded file %s\n", path);
     }
     
     float parseFloat(){
@@ -171,7 +197,7 @@ struct Lexer{
         return s;
     }
 
-    
+
     DataString skipAndParseString(const char *delimiters = " \n\r"){
         skipUntilAlphabet();
         return parseString();

@@ -2,7 +2,7 @@
 
 #define ARRAY_COUNT(x)  (sizeof(x)/sizeof(*x))
 
-namespace CubeMesh{
+namespace CUBES{
     Vec3f vertices[] = {
         {1.0f,1.0f,1.0f},
         {1.0f,1.0f,-1.0f},

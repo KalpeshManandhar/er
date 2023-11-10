@@ -3,40 +3,64 @@
 #include <Renderer/2D/shader.h>
 #include <Renderer/2D/projection.h>
 #include <Renderer/2D/texture.h>
+#include <Renderer/2D/lights.h>
 #include <math/mat.h>
+#include <vector>
 
 struct TestShader: public Shader{
     // globals/uniforms
-    static float time;
-    static Mat4 model;
+    float time;
 
     TestShader(){
-        vs = vertexShade;
-        ps = pixelShade;
-        model = identity<4>();
+        view = model = identity<4>();
     }
 
-    static Vec4f pixelShade(Point p);
-    static Point vertexShade(Point p);
+    Vec4f ps(Point p) override;
+    Point vs(Point p) override;
     
 };
 
 struct TextureShader: public Shader{
     // globals/uniforms
-    static Mat4 model;
-    static Mat4 view;
     static er_Texture2D texture_TradeOffer;
     
 
     TextureShader(){
-        vs = vertexShade;
-        ps = pixelShade;
-        model = identity<4>();
+        view = model = identity<4>();
     }
 
-    static Vec4f pixelShade(Point p);
-    static Point vertexShade(Point p);
+    Vec4f ps(Point p) override;
+    Point vs(Point p) override;
     
 };
 
+struct LightingShader: public Shader{
+    // globals/uniforms
+    Vec3f cameraPos;
+    PointLight *pointLights;
+    int nPointLights;
+    Spotlight *spotLights;
+    int nspotLights;
+    
+
+    LightingShader(){
+        view = model = identity<4>();
+        cameraPos = {};
+        pointLights = 0;
+        nPointLights = 0;
+        spotLights = 0;
+        nspotLights= 0;
+    }
+
+    Vec4f ps(Point p) override;
+    Point vs(Point p) override;
+    
+};
+
+
+namespace Shaders{
+    extern TestShader COLOR_SHADER;
+    extern TextureShader TEXTURE_SHADER;
+    extern LightingShader LIGHTING_SHADER;
+};
 
