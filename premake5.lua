@@ -5,7 +5,7 @@ workspace "Test"
     language "C++"   
     targetdir "bin/%{cfg.buildcfg}" 
     files {"./src/**.cpp" } 
-    includedirs {"./src/"}
+    includedirs {"./src/", "E:/libraries/stb/"}
     filter "configurations:Debug"
     defines { "DEBUG" }  
     symbols "On" 
