@@ -177,17 +177,31 @@ ObjMeshData loadMesh(Lexer &l, ObjFileInfo *f){
             DataString materialName = l.skipAndParseString();
             copyToArray(materialName, info.materialName, sizeof(info.materialName));
 
+            for (int i=0; i<f->mtl.materials.size(); i++){
+                if (strcmp(f->mtl.materials[i].name, info.materialName) == 0){
+                    info.materialIndex = i;
+                }
+            }
+
             m.renderInfo.push_back(info);
         }
         // faces data (indices)
         else if (compare(identifier, "f")){
             for_range(i, 0, 3){
                 int vIndex = l.skipAndParseInt()-1;
-                int tIndex = l.skipAndParseInt()-1;
-                int nIndex = l.skipAndParseInt()-1;
                 m.renderInfo.back().vIndices.push_back(vIndex);
-                m.renderInfo.back().tIndices.push_back(tIndex);
-                m.renderInfo.back().nIndices.push_back(nIndex);
+
+                if (l.data[l.cursor] == '/' && isNumber(l.data[l.cursor+1])){
+                    int tIndex = l.skipAndParseInt()-1;
+                    m.renderInfo.back().tIndices.push_back(tIndex);
+                }
+                else 
+                    l.cursor++;
+
+                if (l.data[l.cursor] == '/' && isNumber(l.data[l.cursor+1])){
+                    int nIndex = l.skipAndParseInt()-1;
+                    m.renderInfo.back().nIndices.push_back(nIndex);
+                }
             }
         }
         else{
@@ -222,16 +236,13 @@ ObjFileInfo loadObj(const char *path){
 
             DataString relativeDir = newDataString(path);
             int endBackSlash = findCharFromBack(relativeDir, '\\') + 1;
-            if (endBackSlash == -1) endBackSlash = findCharFromBack(relativeDir, '/') +1;
+            if (endBackSlash == 0) endBackSlash = findCharFromBack(relativeDir, '/') +1;
 
 
             copyToArray(relativeDir, f.mtlFile, sizeof(f.mtlFile));
             copyToArray(mtlFilePath, f.mtlFile + endBackSlash, sizeof(f.mtlFile) - endBackSlash);
             
-            loadMtlFile(f.mtlFile);
-
-
-            // TODO: add the materials
+            f.mtl = loadMtlFile(f.mtlFile);
         }
         // mesh name 
         else if (compare(identifier, "o")){
@@ -246,6 +257,7 @@ ObjFileInfo loadObj(const char *path){
         
         l.skipCurrentLine();
     }
+    
     return(f);
 }
 

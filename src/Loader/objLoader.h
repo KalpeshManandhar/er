@@ -25,6 +25,8 @@ struct ObjMeshData{
     char name[NAME_ARRAY_SIZE];
     struct RenderInfo{
         char materialName[NAME_ARRAY_SIZE];
+        uint32_t materialIndex;
+
 
         std::vector<uint32_t> vIndices;
         std::vector<uint32_t> tIndices;
@@ -37,6 +39,8 @@ struct ObjMeshData{
 struct ObjFileInfo{
 
     char mtlFile[64];
+    MtlFileInfo mtl;
+
     std::vector<ObjMeshData> meshes;
 
     std::vector<Vec3f> vertices;

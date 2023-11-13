@@ -85,6 +85,7 @@ static Point interpolateProperties(Point p1, Point p2, Point p3, Vec3f t){
     p.color = p1.color*t.x + p2.color*t.y + p3.color*t.z; 
     p.worldPos = p1.worldPos*t.x + p2.worldPos*t.y + p3.worldPos*t.z; 
     p.uv = p1.uv*t.x + p2.uv*t.y + p3.uv*t.z; 
+    p.normal = normalize(p1.normal * t.x + p2.normal * t.y + p3.normal * t.z);
     return p;
 } 
 

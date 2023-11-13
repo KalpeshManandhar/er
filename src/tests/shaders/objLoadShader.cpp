@@ -4,20 +4,21 @@
 
 
 
-Vec4f LightingShader::ps(Point p){
-    
+Vec4f ObjRenderShader::ps(Point p){
     Vec3f view = normalize(cameraPos - p.worldPos);
     Vec3f result = {};
     for (int i=0; i<nPointLights; i++){
         result = result + pointLights[i].getIntensity_attenuated(p.worldPos, surfaceNormal, view);
     }
-    return Vec4f(p.color * result, 1.0f);
+    return Vec4f(color * result, 1.0f);
+
+    // return Vec4f(material.)
 }
 
-Point LightingShader::vs(Point p){
+Point ObjRenderShader::vs(Point p){
     Vec4f p4(p.pos, 1.0f);
     const float znear = 2.0f, zfar = 1000.0f;
-    const float fovx = 90, fovy = 90;
+    const float fovx = 90, fovy = 60;
 
     //apply transformations
     Mat4 m = model;

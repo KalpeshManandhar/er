@@ -2,7 +2,6 @@
 #include <Renderer/2D/renderer.h>
 #include <Renderer/2D/renderer3D.h>
 
-// #include <Renderer/2D/projection.h>
 #include <Renderer/2D/texture.h>
 #include <Renderer/2D/camera.h>
 
@@ -324,25 +323,30 @@ void modelTest(er_Renderer3D *r, ObjFileInfo *f){
         Cube lightCube;
     }scene;
     
-    TestShader defaultShader;
+    ObjRenderShader defaultShader;
     useShader(r, &defaultShader);
 
-    r->shader->model = translate3D(0,-200,0) * scaleAboutOrigin(40,40,40);
+    r->shader->model = translate3D(0,-150,0) * scaleAboutOrigin(1,1,1);
     r->shader->view = c.lookAt();
-    // defaultShader.cameraPos = c.pos;
-    // defaultShader.nPointLights = 1;
-    // defaultShader.pointLights = &scene.pLights;
+    defaultShader.cameraPos = c.pos;
+    defaultShader.nPointLights = 1;
+    defaultShader.pointLights = &scene.pLights;
+
+    scene.pLights = PointLight(Vec3f{150,500,150});
+    scene.lightCube.center = scene.pLights.lightPos;
+    scene.lightCube.radii[0] = 25.0f;
+    scene.lightCube.radii[1] = 25.0f;
+    scene.lightCube.radii[2] = 25.0f;
 
 
     
     for (auto mesh: f->meshes){
         for (auto submesh: mesh.renderInfo){
+            defaultShader.color = f->mtl.materials[submesh.materialIndex].kd;
             displayMesh(r, &f->vertices[0], f->vertices.size(), 
                             &f->normals[0], f->normals.size(), 
                             &submesh.vIndices[0], &submesh.nIndices[0], submesh.vIndices.size());
-            // break;
         }
-        // break;
     } 
 }
 
@@ -372,15 +376,12 @@ void BMPTests(){
     c.pos = Vec3f{0,0,50};
 
     newFrame(&r);
-    // Shader def = {computeVertex, shadePixel};
-    // r.shader = def;
-    
 
     // interpolationTest(&r);
     // projectiontest(&r);
     cubeTest(&r);
     // lightingTest(&r);
-    writeBMP(f, "rendercubetest.bmp", BMP_WRITE_NONE);
+    // writeBMP(f, "rendercubetest.bmp", BMP_WRITE_NONE);
     // textureTests(&r);
     // writeBMP(f, "textureTest.bmp", BMP_WRITE_NONE);
 
@@ -444,7 +445,7 @@ void rendererTest3DEx(){
 
     Vec3f target = Vec3f{0,0,0};
 
-    ObjFileInfo f = loadObj("./models/plant.obj");
+    ObjFileInfo f = loadObj(".\\models\\goose.obj");
 
     
 
@@ -500,7 +501,13 @@ void rendererTest3DEx(){
 
 
 
-int main(){
+// #define test
+#ifdef test
+#define testMain main
+#endif
+
+
+int testMain(){
     // rendererTest2D();
     rendererTest3DEx();
     
