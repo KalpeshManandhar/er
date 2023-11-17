@@ -118,7 +118,14 @@ static void displayObj(er_Renderer3D *r, ObjFileInfo *f){
     ObjRenderShader objShader;
     useShader(r, &objShader);
 
-    r->shader->model = translate3D(0,-200,0) * scaleAboutOrigin(40,40,40);
+    Vec3f objDimensions = f->max - f->min;
+    float maxDim = Max(Max(objDimensions.x, objDimensions.y), objDimensions.z);
+    float scale = 200.0f/maxDim;
+
+    Vec3f objCenter = 0.5f * (f->max + f->min);
+
+
+    r->shader->model =  scaleAboutOrigin(scale,scale,scale) * translate3D(-objCenter.x, -objCenter.y, -objCenter.z);
     r->shader->view = c.lookAt();
     objShader.cameraPos = c.pos;
     objShader.nPointLights = 1;
@@ -194,8 +201,6 @@ void er_DisplayModel(const char *path){
         }
     }
 }
-
-#define demo
 
 #ifdef demo
 #define demomain main

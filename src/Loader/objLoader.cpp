@@ -151,6 +151,14 @@ ObjMeshData loadMesh(Lexer &l, ObjFileInfo *f){
             v.y = l.skipAndParseFloat();
             v.z = l.skipAndParseFloat();
             f->vertices.push_back(v);
+
+            // update bounding box
+            f->min.x = __min(f->min.x, v.x);
+            f->min.y = __min(f->min.y, v.y);
+            f->min.z = __min(f->min.z, v.z);
+            f->max.x = __max(f->max.x, v.x);
+            f->max.y = __max(f->max.y, v.y);
+            f->max.z = __max(f->max.z, v.z);
         }
         // texture coordinates
         else if (compare(identifier, "vt")){

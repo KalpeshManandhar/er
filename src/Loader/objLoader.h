@@ -46,6 +46,9 @@ struct ObjFileInfo{
     std::vector<Vec3f> vertices;
     std::vector<Vec2f> texCoords;
     std::vector<Vec3f> normals;
+    
+    // bounding box
+    Vec3f min, max;
 };
 
 ObjFileInfo loadObj(const char *path);

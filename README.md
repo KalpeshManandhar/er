@@ -1,5 +1,12 @@
 # er
-A software renderer
+A software renderer-er using concepts from the OpenGL graphics pipeline.
+Plus a somewhat working .obj loader.
+
+## honk honk goose
+
+    ![honk](./output/goose.gif)
+
+
 
 ## Finished
 - rasterization (edge function test)
@@ -18,7 +25,7 @@ A software renderer
                 
 
 ## In progress
-- .obj loader (Vertices done: need to link to materials)
+- .obj loader + obj load shader (textures remaining)
 - lights (point light tested + specular lighting seems to work incorrectly)
 
 ## TODO: 

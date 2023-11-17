@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Loader">
+      <UniqueIdentifier>{1C9C36C1-083E-6197-F1F8-74EBDD39E8E7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer">
+      <UniqueIdentifier>{7CCE658F-689B-C09A-91B4-AE427DE0F528}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\2D">
+      <UniqueIdentifier>{A1DB7F02-0D91-F8F7-9685-F2CE023AEFFB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils">
+      <UniqueIdentifier>{F68B420E-62A0-6ABF-2B22-0E1F97F566F0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="math">
+      <UniqueIdentifier>{CF809A7C-BBB7-9B0D-64A4-811050BA170F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{78756B10-E489-93C1-AD0B-372119DF8FF2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\shaders">
+      <UniqueIdentifier>{712A91B3-DDEA-0CEA-A625-566712A551C6}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Loader\objLoader.cpp">
+      <Filter>Loader</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer\2D\camera.cpp">
+      <Filter>Renderer\2D</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer\2D\er_renderer.cpp">
+      <Filter>Renderer\2D</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer\2D\primitivesRender.cpp">
+      <Filter>Renderer\2D</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer\2D\projection.cpp">
+      <Filter>Renderer\2D</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer\2D\renderer3D.cpp">
+      <Filter>Renderer\2D</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer\2D\texture.cpp">
+      <Filter>Renderer\2D</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Utils\threadpool.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="src\math\interpolation.cpp">
+      <Filter>math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\math\mat.cpp">
+      <Filter>math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\math\utils.cpp">
+      <Filter>math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\math\vec.cpp">
+      <Filter>math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tests\main.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tests\objLoadertest.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tests\shaders\lightingShader.cpp">
+      <Filter>tests\shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tests\shaders\objLoadShader.cpp">
+      <Filter>tests\shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tests\shaders\shaderTest.cpp">
+      <Filter>tests\shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tests\shaders\textureShader.cpp">
+      <Filter>tests\shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tests\threadtests.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tests\demo.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
