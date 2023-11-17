@@ -1,10 +1,9 @@
 # er
 A software renderer-er using concepts from the OpenGL graphics pipeline.
+
 Plus a somewhat working .obj loader.
 
-## honk honk goose
-
-    ![honk](./output/goose.gif)
+![honk](./output/goose.gif)
 
 
 
